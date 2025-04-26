@@ -31,6 +31,9 @@ const Navbar = () => {
               <a href="/about" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
                 Về chúng tôi
               </a>
+              <a href="/contact" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                Liên hệ
+              </a>
             </div>
           </div>
           
@@ -108,6 +111,12 @@ const Navbar = () => {
             className="border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 block pl-3 pr-4 py-2 border-l-4 text-base font-medium"
           >
             Về chúng tôi
+          </a>
+          <a
+            href="/contact"
+            className="border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 block pl-3 pr-4 py-2 border-l-4 text-base font-medium"
+          >
+            Liên hệ
           </a>
         </div>
         <div className="pt-4 pb-3 border-t border-gray-200">
