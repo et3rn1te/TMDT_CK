@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import CourseCard from '../components/CourseCard';
+import CourseCard from '../components/search/CourseCard';
 import { Filter, SlidersHorizontal } from 'lucide-react';
 
 const SearchResults = () => {
