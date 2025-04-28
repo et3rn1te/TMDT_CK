@@ -12,6 +12,8 @@ import CheckEmail from './pages/CheckEmail';
 import EditProfile from './pages/EditProfile';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import CourseDetail from './pages/CourseDetail';
+import CourseRatings from './pages/CourseRatings';
 
 
 function App() {
@@ -31,6 +33,9 @@ function App() {
         <Route path="/EditProfile" element={<EditProfile />} />
         <Route path="/ForgotPassword" element={<ForgotPassword />} />
         <Route path="/ResetPassword" element={<ResetPassword />} />
+        <Route path="/course/:courseId" element={<CourseDetail />} />
+        <Route path="/course-ratings" element={<CourseRatings />} />
+        <Route path="/course-complaint/:courseId" element={<CourseComplaint />} />
       </Routes>
     </Router>
   );
