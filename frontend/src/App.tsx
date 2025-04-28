@@ -7,6 +7,8 @@ import RegisteredCourses from './pages/RegisteredCourses';
 import PaymentMethod from './pages/PaymentMethod';
 import PaymentSuccess from './pages/PaymentSuccess';
 import CourseDetail from './pages/CourseDetail';
+import CourseRatings from './pages/CourseRatings';
+import CourseComplaint from './pages/CourseComplaint';
 
 function App() {
   return (
@@ -20,6 +22,8 @@ function App() {
         <Route path="/payment/:courseId" element={<PaymentMethod />} />
         <Route path="/payment/success" element={<PaymentSuccess />} />
         <Route path="/course/:courseId" element={<CourseDetail />} />
+        <Route path="/course-ratings" element={<CourseRatings />} />
+        <Route path="/course-complaint/:courseId" element={<CourseComplaint />} />
       </Routes>
     </Router>
   );
