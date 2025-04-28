@@ -6,6 +6,13 @@ import SearchResults from './pages/SearchResults';
 import RegisteredCourses from './pages/RegisteredCourses';
 import PaymentMethod from './pages/PaymentMethod';
 import PaymentSuccess from './pages/PaymentSuccess';
+import Register from './pages/Register';
+import Login from './pages/Login.tsx';
+import CheckEmail from './pages/CheckEmail';
+import EditProfile from './pages/EditProfile';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
+
 
 function App() {
   return (
@@ -18,6 +25,12 @@ function App() {
         <Route path="/my-courses" element={<RegisteredCourses />} />
         <Route path="/payment/:courseId" element={<PaymentMethod />} />
         <Route path="/payment/success" element={<PaymentSuccess />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/Login" element={<Login />} />
+        <Route path="/CheckEmail" element={<CheckEmail />} />
+        <Route path="/EditProfile" element={<EditProfile />} />
+        <Route path="/ForgotPassword" element={<ForgotPassword />} />
+        <Route path="/ResetPassword" element={<ResetPassword />} />
       </Routes>
     </Router>
   );

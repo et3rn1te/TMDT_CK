@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Search, ShoppingCart, Menu, X, User } from 'lucide-react';
+import {Link} from "react-router-dom";
 // import logo from '../assets/logo.svg'; // Bạn cần thêm logo vào thư mục assets
 
 const Navbar = () => {
@@ -61,12 +62,14 @@ const Navbar = () => {
               </button>
             </div>
             <div className="ml-4">
-              <a
-                href="/login"
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-              >
+              <Link to="/Login" className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                 Đăng nhập
-              </a>
+              </Link>
+            </div>
+            <div className="ml-4">
+              <Link to="/Register" className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                Đăng ký
+              </Link>
             </div>
           </div>
           
@@ -129,7 +132,7 @@ const Navbar = () => {
             </div>
             <div className="ml-3">
               <a
-                href="/login"
+                href="/frontend/src/pages/Login"
                 className="block text-base font-medium text-gray-700"
               >
                 Đăng nhập
