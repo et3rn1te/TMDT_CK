@@ -14,6 +14,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import CourseDetail from './pages/CourseDetail';
 import CourseRatings from './pages/CourseRatings';
+import CourseComplaint from './pages/CourseComplaint.tsx';
 
 
 function App() {
