@@ -1,13 +1,21 @@
 import { useState } from 'react';
 import { Search, ShoppingCart, Menu, X, User } from 'lucide-react';
-import {Link} from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from '../context/AuthContext';
 // import logo from '../assets/logo.svg'; // Bạn cần thêm logo vào thư mục assets
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { isAuthenticated, userEmail, logout } = useAuth();
+  const navigate = useNavigate();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
   };
 
   return (
@@ -64,16 +72,31 @@ const Navbar = () => {
                 <ShoppingCart className="h-6 w-6" />
               </button>
             </div>
-            <div className="ml-4">
-              <Link to="/Login" className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                Đăng nhập
-              </Link>
-            </div>
-            <div className="ml-4">
-              <Link to="/Register" className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                Đăng ký
-              </Link>
-            </div>
+            
+            {isAuthenticated ? (
+              <div className="ml-4 flex items-center">
+                <span className="text-gray-700 mr-4">{userEmail}</span>
+                <button
+                  onClick={handleLogout}
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                >
+                  Đăng xuất
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="ml-4">
+                  <Link to="/Login" className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Đăng nhập
+                  </Link>
+                </div>
+                <div className="ml-4">
+                  <Link to="/Register" className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Đăng ký
+                  </Link>
+                </div>
+              </>
+            )}
           </div>
           
           {/* Mobile menu button */}
@@ -140,12 +163,24 @@ const Navbar = () => {
               <User className="h-10 w-10 rounded-full text-gray-400" />
             </div>
             <div className="ml-3">
-              <a
-                href="/frontend/src/pages/Login"
-                className="block text-base font-medium text-gray-700"
-              >
-                Đăng nhập
-              </a>
+              {isAuthenticated ? (
+                <div>
+                  <div className="text-base font-medium text-gray-800">{userEmail}</div>
+                  <button
+                    onClick={handleLogout}
+                    className="mt-2 block text-base font-medium text-red-500"
+                  >
+                    Đăng xuất
+                  </button>
+                </div>
+              ) : (
+                <Link
+                  to="/Login"
+                  className="block text-base font-medium text-gray-700"
+                >
+                  Đăng nhập
+                </Link>
+              )}
             </div>
           </div>
         </div>
