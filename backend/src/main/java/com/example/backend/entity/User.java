@@ -12,10 +12,10 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class User {
+public class User extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer userId;
+    private Long userId;
 
     @Column(unique = true, nullable = false)
     private String email;
@@ -30,9 +30,9 @@ public class User {
 
     private String address;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Role role = Role.customer;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "role_id")
+    private Role role;
 
     private boolean isVerified = false;
 
@@ -43,11 +43,4 @@ public class User {
 
     private LocalDateTime resetPasswordExpires;
 
-    private LocalDateTime createdAt = LocalDateTime.now();
-
-    private LocalDateTime updatedAt = LocalDateTime.now();
-
-    public enum Role {
-        customer, seller, admin
-    }
 }

@@ -5,22 +5,16 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
 @Entity
-@Table(name = "levels")
+@Table(name = "users")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Level {
+public class Role extends BaseEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer levelId;
+    Long id;
 
-    @Column(nullable = false)
-    private String name;
-
-    private String description;
-
-    private LocalDateTime createdAt = LocalDateTime.now();
+    String name;
 }
