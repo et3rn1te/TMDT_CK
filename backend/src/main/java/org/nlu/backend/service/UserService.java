@@ -10,10 +10,12 @@ import org.nlu.backend.entity.User;
 import org.nlu.backend.mapper.UserMapper;
 import org.nlu.backend.repository.RoleRepository;
 import org.nlu.backend.repository.UserRepository;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Service
@@ -41,6 +43,12 @@ public class UserService {
         user.setRoles(roles);
 
         return userMapper.toUserResponse(userRepository.save(user));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<UserResponse> getAllUsers() {
+        List<User> users = userRepository.findAll();
+        return users.stream().map(userMapper::toUserResponse).toList();
     }
 
 }

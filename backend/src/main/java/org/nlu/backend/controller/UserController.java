@@ -8,10 +8,10 @@ import org.nlu.backend.dto.request.UserCreationRequest;
 import org.nlu.backend.dto.response.UserResponse;
 import org.nlu.backend.service.UserService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/users")
@@ -26,6 +26,14 @@ public class UserController {
         return ResponseEntity.ok()
                 .body(ApiResponse.<UserResponse>builder()
                         .data(userService.createUser(request))
+                        .build());
+    }
+
+    @GetMapping
+    ResponseEntity<ApiResponse<List<UserResponse>>> getUsers() {
+        return ResponseEntity.ok()
+                .body(ApiResponse.<List<UserResponse>>builder()
+                        .data(userService.getAllUsers())
                         .build());
     }
 
