@@ -2,6 +2,7 @@ package org.nlu.backend.dto.response.admin.course;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import org.nlu.backend.dto.response.course.SellerResponse;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -22,5 +23,6 @@ public class AdminCourseResponse {
     private String categoryName;
     private String levelName;
     private String status;
+    private SellerResponse seller;
     private LocalDateTime createdAt;
 }

@@ -5,6 +5,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -48,7 +49,7 @@ public class Course extends BaseEntity {
     CourseStatus status;
 
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
-    Set<Lesson> lessons;
+    List<Lesson> lessons;
 
     public enum CourseStatus {
         DRAFT, PUBLISHED, ARCHIVED, PENDING_APPROVAL, REJECTED

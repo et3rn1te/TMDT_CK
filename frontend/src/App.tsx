@@ -12,10 +12,10 @@ import CheckEmail from './pages/CheckEmail';
 import EditProfile from './pages/EditProfile';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
-import CourseDetail from './pages/CourseDetail';
+import CourseDetail from './pages/course/CourseDetail';
 import CourseRatings from './pages/CourseRatings';
-import CourseComplaint from './pages/CourseComplaint.tsx';
-
+import CourseComplaint from './pages/course/CourseComplaint.tsx';
+import CourseList from './pages/course/CourseList';
 
 function App() {
   return (
@@ -25,6 +25,7 @@ function App() {
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/search" element={<SearchResults />} />
+        <Route path="/courses" element={<CourseList />} />
         <Route path="/my-courses" element={<RegisteredCourses />} />
         <Route path="/payment/:courseId" element={<PaymentMethod />} />
         <Route path="/payment/success" element={<PaymentSuccess />} />

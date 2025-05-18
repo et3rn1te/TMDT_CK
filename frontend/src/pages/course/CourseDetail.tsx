@@ -15,11 +15,32 @@ import {
   CheckCircle 
 } from 'lucide-react';
 
-interface CourseDetailProps {
+// Interface cho dữ liệu từ API
+interface CourseResponse {
   id: number;
   title: string;
   description: string;
-  instructor: {
+  price: number;
+  discountPrice: number | null;
+  categoryName: string;
+  levelName: string;
+  seller: {
+    id: number;
+    fullName: string;
+    // Các trường khác của seller sẽ được thêm sau
+  };
+  status: string;
+  lessons: {
+    id: number;
+    title: string;
+    // Các trường khác của lesson sẽ được thêm sau
+  }[];
+}
+
+// Interface mở rộng cho các trường sẽ được thêm sau
+interface ExtendedCourseData extends CourseResponse {
+  // Các trường sẽ được thêm sau
+  instructor?: {
     name: string;
     avatar: string;
     title: string;
@@ -27,21 +48,18 @@ interface CourseDetailProps {
     students: number;
     courses: number;
   };
-  rating: number;
-  reviews: number;
-  students: number;
-  lastUpdated: string;
-  language: string;
-  level: string;
-  duration: string;
-  lectures: number;
-  price: number;
-  salePrice: number | null;
-  thumbnail: string;
-  videoUrl: string;
-  whatYouWillLearn: string[];
-  requirements: string[];
-  reviewsList: {
+  rating?: number;
+  reviews?: number;
+  students?: number;
+  lastUpdated?: string;
+  language?: string;
+  duration?: string;
+  lectures?: number;
+  thumbnail?: string;
+  videoUrl?: string;
+  whatYouWillLearn?: string[];
+  requirements?: string[];
+  reviewsList?: {
     id: number;
     name: string;
     avatar: string;
@@ -53,8 +71,9 @@ interface CourseDetailProps {
 
 const CourseDetail = () => {
   const { courseId } = useParams<{ courseId: string }>();
-  const [course, setCourse] = useState<CourseDetailProps | null>(null);
+  const [course, setCourse] = useState<ExtendedCourseData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'curriculum' | 'reviews'>('overview');
 
@@ -72,77 +91,76 @@ const CourseDetail = () => {
   };
 
   useEffect(() => {
-    // Simulate API call to get course details
-    setTimeout(() => {
-      setCourse({
-        id: 1,
-        title: 'Complete English Grammar Course - Improve Your Language Skills',
-        description: 'Bạn muốn cải thiện ngữ pháp tiếng Anh của mình một cách toàn diện? Khóa học này cung cấp cho bạn tất cả các kiến thức ngữ pháp từ cơ bản đến nâng cao với các bài giảng đầy đủ và bài tập thực hành. Từ thì động từ, danh từ, tính từ đến các cấu trúc câu phức tạp, khóa học này sẽ giúp bạn nắm vững tất cả các khía cạnh của ngữ pháp tiếng Anh.\n\nKhóa học được thiết kế đặc biệt dành cho người học Việt Nam với nhiều ví dụ thực tế và các tình huống giao tiếp thường ngày. Các bài giảng được trình bày rõ ràng, dễ hiểu với phụ đề tiếng Việt (nếu cần). Sau khi hoàn thành khóa học, bạn sẽ tự tin hơn trong việc sử dụng tiếng Anh trong giao tiếp, viết lách và các kỳ thi như IELTS, TOEFL.\n\nGiảng viên của chúng tôi có hơn 10 năm kinh nghiệm giảng dạy tiếng Anh và luôn sẵn sàng hỗ trợ bạn trong suốt quá trình học. Đừng bỏ lỡ cơ hội này để đưa kỹ năng tiếng Anh của bạn lên một tầm cao mới!',
-        instructor: {
-          name: 'John Smith',
-          avatar: 'https://randomuser.me/api/portraits/men/41.jpg',
-          title: 'Giảng viên tiếng Anh - TESOL',
-          rating: 4.8,
-          students: 15420,
-          courses: 5
-        },
-        rating: 4.8,
-        reviews: 1254,
-        students: 5280,
-        lastUpdated: '2023-05-15',
-        language: 'Tiếng Anh',
-        level: 'Tất cả cấp độ',
-        duration: '24 giờ 30 phút',
-        lectures: 42,
-        price: 799000,
-        salePrice: 399000,
-        thumbnail: 'https://img-c.udemycdn.com/course/750x422/2380566_0476.jpg',
-        videoUrl: 'https://www.youtube.com/embed/ER9SspLe4Hg',
-        whatYouWillLearn: [
-          'Nắm vững tất cả các thì trong tiếng Anh',
-          'Sử dụng đúng cách các loại từ (danh từ, động từ, tính từ, trạng từ)',
-          'Xây dựng câu phức tạp với mệnh đề quan hệ',
-          'Sử dụng đúng giới từ trong tiếng Anh',
-          'Phân biệt được các cấu trúc câu điều kiện',
-          'Giao tiếp tự tin với ngữ pháp chính xác'
-        ],
-        requirements: [
-          'Không yêu cầu kiến thức tiếng Anh trước đó',
-          'Chỉ cần có máy tính hoặc điện thoại thông minh để truy cập khóa học',
-          'Có động lực để học và cải thiện kỹ năng tiếng Anh'
-        ],
-        reviewsList: [
-          {
-            id: 1,
-            name: 'Nguyễn Văn A',
-            avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
-            rating: 5,
-            date: '2023-06-10',
-            comment: 'Khóa học rất chi tiết và dễ hiểu. Giảng viên giải thích rõ ràng từng chủ đề ngữ pháp. Tôi đã cải thiện đáng kể kỹ năng tiếng Anh của mình sau khóa học này.'
+    const fetchCourseDetail = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await fetch(`http://localhost:8080/api/v1/courses/${courseId}`);
+        
+        if (!response.ok) {
+          throw new Error('Không thể tải thông tin khóa học');
+        }
+
+        const data: CourseResponse = await response.json();
+        
+        // Tạm thời thêm dữ liệu mẫu cho các trường chưa có trong API
+        const extendedData: ExtendedCourseData = {
+          ...data,
+          instructor: {
+            name: data.seller.fullName,
+            avatar: 'https://randomuser.me/api/portraits/men/41.jpg', // Sẽ được thay thế bằng API
+            title: 'Giảng viên', // Sẽ được thay thế bằng API
+            rating: 4.8, // Sẽ được thay thế bằng API
+            students: 15420, // Sẽ được thay thế bằng API
+            courses: 5 // Sẽ được thay thế bằng API
           },
-          {
-            id: 2,
-            name: 'Trần Thị B',
-            avatar: 'https://randomuser.me/api/portraits/women/44.jpg',
-            rating: 4,
-            date: '2023-05-20',
-            comment: 'Nội dung khóa học rất phong phú và có nhiều bài tập thực hành. Tuy nhiên, tôi nghĩ một số phần hơi nhanh đối với người mới học.'
-          },
-          {
-            id: 3,
-            name: 'Lê Văn C',
-            avatar: 'https://randomuser.me/api/portraits/men/56.jpg',
-            rating: 5,
-            date: '2023-04-15',
-            comment: 'Tôi đã tìm hiểu nhiều khóa học ngữ pháp tiếng Anh và khóa học này là tốt nhất. Các bài giảng được tổ chức rất tốt và giảng viên rất nhiệt tình.'
-          }
-        ]
-      });
-      setLoading(false);
-    }, 1000);
+          rating: 4.8, // Sẽ được thay thế bằng API
+          reviews: 1254, // Sẽ được thay thế bằng API
+          students: 5280, // Sẽ được thay thế bằng API
+          lastUpdated: new Date().toISOString(), // Sẽ được thay thế bằng API
+          language: 'Tiếng Anh', // Sẽ được thay thế bằng API
+          duration: '24 giờ 30 phút', // Sẽ được thay thế bằng API
+          lectures: data.lessons.length, // Tạm thời sử dụng số lượng lessons
+          thumbnail: 'https://img-c.udemycdn.com/course/750x422/2380566_0476.jpg', // Sẽ được thay thế bằng API
+          videoUrl: 'https://www.youtube.com/embed/ER9SspLe4Hg', // Sẽ được thay thế bằng API
+          whatYouWillLearn: [ // Sẽ được thay thế bằng API
+            'Nắm vững tất cả các thì trong tiếng Anh',
+            'Sử dụng đúng cách các loại từ',
+            'Xây dựng câu phức tạp',
+            'Giao tiếp tự tin'
+          ],
+          requirements: [ // Sẽ được thay thế bằng API
+            'Không yêu cầu kiến thức trước đó',
+            'Chỉ cần có máy tính hoặc điện thoại thông minh',
+            'Có động lực để học'
+          ],
+          reviewsList: [ // Sẽ được thay thế bằng API
+            {
+              id: 1,
+              name: 'Nguyễn Văn A',
+              avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
+              rating: 5,
+              date: '2023-06-10',
+              comment: 'Khóa học rất hay và bổ ích'
+            }
+          ]
+        };
+
+        setCourse(extendedData);
+      } catch (error) {
+        console.error('Error fetching course details:', error);
+        setError(error instanceof Error ? error.message : 'Đã xảy ra lỗi khi tải thông tin khóa học');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (courseId) {
+      fetchCourseDetail();
+    }
   }, [courseId]);
 
-  if (loading || !course) {
+  if (loading) {
     return (
       <div className="min-h-screen flex flex-col">
         <Navbar />
@@ -153,6 +171,27 @@ const CourseDetail = () => {
             <div className="h-4 bg-gray-200 rounded w-5/6 mb-6"></div>
             <div className="h-64 bg-gray-200 rounded mb-6"></div>
             <div className="h-32 bg-gray-200 rounded"></div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (error || !course) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <main className="flex-grow flex items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Đã xảy ra lỗi</h2>
+            <p className="text-gray-600 mb-4">{error || 'Không tìm thấy thông tin khóa học'}</p>
+            <Link
+              to="/courses"
+              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
+            >
+              Quay lại danh sách khóa học
+            </Link>
           </div>
         </main>
         <Footer />
@@ -176,22 +215,22 @@ const CourseDetail = () => {
                       <Star
                         key={star}
                         className="h-5 w-5"
-                        fill={star <= Math.round(course.rating) ? "currentColor" : "none"}
+                        fill={star <= Math.round(course.rating || 0) ? "currentColor" : "none"}
                       />
                     ))}
                   </div>
-                  <span className="mr-2">{course.rating}</span>
+                  <span className="mr-2">{course.rating || 0}</span>
                   <span className="text-gray-300">({course.reviews} đánh giá)</span>
                   <span className="mx-2">•</span>
                   <span>{course.students} học viên</span>
                 </div>
                 <p className="mb-4">
-                  Được tạo bởi <span className="font-medium">{course.instructor.name}</span>
+                  Được tạo bởi <span className="font-medium">{course.instructor?.name || course.seller.fullName}</span>
                 </p>
                 <div className="flex flex-wrap items-center text-sm text-gray-300 mb-6">
                   <div className="flex items-center mr-4 mb-2">
                     <Clock className="h-4 w-4 mr-1" />
-                    <span>Cập nhật {formatDate(course.lastUpdated)}</span>
+                    <span>Cập nhật {formatDate(course.lastUpdated || new Date().toISOString())}</span>
                   </div>
                   <div className="flex items-center mr-4 mb-2">
                     <Globe className="h-4 w-4 mr-1" />
@@ -199,7 +238,7 @@ const CourseDetail = () => {
                   </div>
                   <div className="flex items-center mr-4 mb-2">
                     <BarChart2 className="h-4 w-4 mr-1" />
-                    <span>{course.level}</span>
+                    <span>{course.levelName}</span>
                   </div>
                   <div className="flex items-center mb-2">
                     <FileText className="h-4 w-4 mr-1" />
@@ -211,9 +250,9 @@ const CourseDetail = () => {
                 <div className="lg:hidden bg-gray-800 p-4 rounded-lg mb-6">
                   <div className="flex items-center mb-2">
                     <span className="text-2xl font-bold mr-2">
-                      {course.salePrice ? formatPrice(course.salePrice) : formatPrice(course.price)}
+                      {course.discountPrice ? formatPrice(course.discountPrice) : formatPrice(course.price)}
                     </span>
-                    {course.salePrice && (
+                    {course.discountPrice && (
                       <span className="text-gray-400 line-through">
                         {formatPrice(course.price)}
                       </span>
@@ -252,9 +291,9 @@ const CourseDetail = () => {
                   <div className="p-6">
                     <div className="flex items-center mb-4">
                       <span className="text-3xl font-bold mr-3">
-                        {course.salePrice ? formatPrice(course.salePrice) : formatPrice(course.price)}
+                        {course.discountPrice ? formatPrice(course.discountPrice) : formatPrice(course.price)}
                       </span>
-                      {course.salePrice && (
+                      {course.discountPrice && (
                         <span className="text-gray-400 line-through">
                           {formatPrice(course.price)}
                         </span>
@@ -355,7 +394,7 @@ const CourseDetail = () => {
               <div className="mb-8">
                 <h2 className="text-xl font-bold mb-4">Bạn sẽ học được gì</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {course.whatYouWillLearn.map((item, index) => (
+                  {(course.whatYouWillLearn || []).map((item, index) => (
                     <div key={index} className="flex">
                       <CheckCircle className="h-6 w-6 text-green-500 flex-shrink-0 mr-2" />
                       <span>{item}</span>
@@ -367,7 +406,7 @@ const CourseDetail = () => {
               <div className="mb-8">
                 <h2 className="text-xl font-bold mb-4">Yêu cầu</h2>
                 <ul className="list-disc pl-5 space-y-2">
-                  {course.requirements.map((item, index) => (
+                  {(course.requirements || []).map((item, index) => (
                     <li key={index}>{item}</li>
                   ))}
                 </ul>
@@ -377,31 +416,31 @@ const CourseDetail = () => {
                 <h2 className="text-xl font-bold mb-4">Giảng viên</h2>
                 <div className="flex items-start">
                   <img 
-                    src={course.instructor.avatar} 
-                    alt={course.instructor.name}
+                    src={course.instructor?.avatar || 'https://randomuser.me/api/portraits/men/41.jpg'} 
+                    alt={course.instructor?.name || course.seller.fullName}
                     className="w-20 h-20 rounded-full mr-4"
                   />
                   <div>
-                    <h3 className="text-lg font-semibold">{course.instructor.name}</h3>
-                    <p className="text-gray-600 mb-2">{course.instructor.title}</p>
+                    <h3 className="text-lg font-semibold">{course.instructor?.name || course.seller.fullName}</h3>
+                    <p className="text-gray-600 mb-2">{course.instructor?.title || 'Giảng viên'}</p>
                     <div className="flex items-center text-sm text-gray-600 space-x-4 mb-2">
                       <div className="flex items-center">
                         <Star className="h-4 w-4 text-yellow-400 mr-1" />
-                        <span>{course.instructor.rating} Xếp hạng giảng viên</span>
+                        <span>{course.instructor?.rating || 0} Xếp hạng giảng viên</span>
                       </div>
                       <div className="flex items-center">
                         <MessageSquare className="h-4 w-4 mr-1" />
-                        <span>{course.reviews} Đánh giá</span>
+                        <span>{course.reviews || 0} Đánh giá</span>
                       </div>
                     </div>
                     <div className="flex items-center text-sm text-gray-600 space-x-4">
                       <div className="flex items-center">
                         <Users className="h-4 w-4 mr-1" />
-                        <span>{course.instructor.students} Học viên</span>
+                        <span>{course.instructor?.students || 0} Học viên</span>
                       </div>
                       <div className="flex items-center">
                         <PlayCircle className="h-4 w-4 mr-1" />
-                        <span>{course.instructor.courses} Khóa học</span>
+                        <span>{course.instructor?.courses || 0} Khóa học</span>
                       </div>
                     </div>
                   </div>
@@ -494,13 +533,13 @@ const CourseDetail = () => {
                         <Star
                           key={star}
                           className="h-5 w-5"
-                          fill={star <= Math.round(course.rating) ? "currentColor" : "none"}
+                          fill={star <= Math.round(course.rating || 0) ? "currentColor" : "none"}
                         />
                       ))}
                     </div>
-                    <span className="font-bold text-xl">{course.rating}</span>
+                    <span className="font-bold text-xl">{course.rating || 0}</span>
                   </div>
-                  <p className="text-gray-600">{course.reviews} đánh giá</p>
+                  <p className="text-gray-600">{course.reviews || 0} đánh giá</p>
                 </div>
                 
                 <div className="md:w-2/3">
@@ -539,7 +578,7 @@ const CourseDetail = () => {
               <div>
                 <h3 className="text-lg font-semibold mb-4">Nhận xét từ học viên</h3>
                 <div className="space-y-6">
-                  {course.reviewsList.map((review) => (
+                  {(course.reviewsList || []).map((review) => (
                     <div key={review.id} className="border-b border-gray-200 pb-6">
                       <div className="flex items-start">
                         <img 

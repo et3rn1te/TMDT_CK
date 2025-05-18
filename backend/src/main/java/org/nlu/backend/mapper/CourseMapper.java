@@ -17,6 +17,10 @@ import java.util.List;
 public interface CourseMapper {
 
     // CREATE
+    @Mapping(source = "categoryId", target = "category.id")
+    @Mapping(source = "levelId", target = "level.id")
+    @Mapping(source = "sellerId", target = "seller.id")
+    @Mapping(target = "status", constant = "DRAFT")
     Course toCourse(CourseCreationRequest request);
 
     // UPDATE
@@ -36,7 +40,7 @@ public interface CourseMapper {
     // ENTITY → SUMMARY RESPONSE
     @Mapping(source = "seller.fullName", target = "sellerName")
     @Mapping(source = "category.name", target = "categoryName")
-    @Mapping(target = "thumbnailUrl", constant = "")
+    @Mapping(target = "thumbnailUrl", constant = "https://picsum.photos/1080/1920")
     CourseSummaryResponse toCourseSummaryResponse(Course course);
 
     // ENTITY → ADMIN RESPONSE

@@ -29,7 +29,10 @@ import java.util.Arrays;
 public class SecurityConfig {
 
     private static final String[] PUBLIC_POST_ENDPOINTS = {
-            "/users", "/auth/login",
+            "/users", "/auth/login", "/courses/**"
+    };
+    private static final String[] PUBLIC_GET_ENDPOINTS = {
+            "/courses/**",
     };
 
 
@@ -42,6 +45,7 @@ public class SecurityConfig {
         //permission
         httpSecurity.authorizeHttpRequests(request ->
                 request.requestMatchers(HttpMethod.POST, PUBLIC_POST_ENDPOINTS).permitAll()
+                        .requestMatchers(HttpMethod.GET, PUBLIC_GET_ENDPOINTS).permitAll()
                 .anyRequest().authenticated()
         );
 
