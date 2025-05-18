@@ -34,6 +34,16 @@ public class SecurityConfig {
     private static final String[] PUBLIC_GET_ENDPOINTS = {
             "/courses/**",
     };
+    private static final String[] PUBLIC_PUT_ENDPOINTS = {
+            "/courses/**",
+    };
+    private static final String[] PUBLIC_PATCH_ENDPOINTS = {
+            "/courses/**",
+    };
+    private static final String[] PUBLIC_DELETE_ENDPOINTS = {
+            "/courses/**",
+    };
+
 
 
     @Value("${jwt.signerKey}")
@@ -46,7 +56,10 @@ public class SecurityConfig {
         httpSecurity.authorizeHttpRequests(request ->
                 request.requestMatchers(HttpMethod.POST, PUBLIC_POST_ENDPOINTS).permitAll()
                         .requestMatchers(HttpMethod.GET, PUBLIC_GET_ENDPOINTS).permitAll()
-                .anyRequest().authenticated()
+                        .requestMatchers(HttpMethod.PUT, PUBLIC_PUT_ENDPOINTS).permitAll()
+                        .requestMatchers(HttpMethod.PATCH, PUBLIC_PATCH_ENDPOINTS).permitAll()
+                        .requestMatchers(HttpMethod.DELETE, PUBLIC_DELETE_ENDPOINTS).permitAll()
+                .anyRequest().permitAll()
         );
 
         //token
