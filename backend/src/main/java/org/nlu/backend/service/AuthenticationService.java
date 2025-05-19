@@ -14,6 +14,8 @@ import lombok.experimental.NonFinal;
 import org.nlu.backend.dto.request.AuthenticationRequest;
 import org.nlu.backend.dto.response.AuthenticationResponse;
 import org.nlu.backend.entity.User;
+import org.nlu.backend.exception.AppException;
+import org.nlu.backend.exception.ErrorCode;
 import org.nlu.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -45,12 +47,12 @@ public class AuthenticationService {
 
     public AuthenticationResponse authenicate(AuthenticationRequest request) {
         var user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new AppException(ErrorCode.EMAIL_NOT_EXISTED));
 
         boolean authenticated = passwordEncoder.matches(request.getPassword(), user.getPassword());
 
         if (!authenticated)
-            throw new RuntimeException("Invalid password");
+            throw new AppException(ErrorCode.INVALID_PASSWORD);
 
         var token = generateToken(user);
 
@@ -59,7 +61,6 @@ public class AuthenticationService {
                 .authenticated(true)
                 .build();
     }
-
 
 
     private SignedJWT verifyToken(String token) throws JOSEException, ParseException {
@@ -74,7 +75,7 @@ public class AuthenticationService {
         var verified = signedJWT.verify(verifier);
 
         if (!(verified && expiryTime.after(new Date())))
-            throw new RuntimeException("AUTHENTICATED");
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
 
         return signedJWT;
     }
