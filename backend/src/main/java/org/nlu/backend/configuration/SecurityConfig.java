@@ -29,10 +29,10 @@ import java.util.Arrays;
 public class SecurityConfig {
 
     private static final String[] PUBLIC_POST_ENDPOINTS = {
-            "/users", "/auth/login", "/courses/**", "/categories"
+            "/users", "/auth/login", "/courses/**", "/categories", "/levels",
     };
     private static final String[] PUBLIC_GET_ENDPOINTS = {
-            "/courses/**", "/categories"
+            "/courses/**", "/categories", "/levels",
     };
     private static final String[] PUBLIC_PUT_ENDPOINTS = {
             "/courses/**",
