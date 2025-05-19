@@ -29,10 +29,10 @@ import java.util.Arrays;
 public class SecurityConfig {
 
     private static final String[] PUBLIC_POST_ENDPOINTS = {
-            "/users", "/auth/login", "/courses/**"
+            "/users", "/auth/login", "/courses/**", "/categories"
     };
     private static final String[] PUBLIC_GET_ENDPOINTS = {
-            "/courses/**",
+            "/courses/**", "/categories"
     };
     private static final String[] PUBLIC_PUT_ENDPOINTS = {
             "/courses/**",
@@ -78,7 +78,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173")); // Your frontend URL
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173"));// frontend URL
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);

@@ -24,6 +24,24 @@ public class ApplicationInitConfig {
     PasswordEncoder passwordEncoder;
 
     @Bean
+    ApplicationRunner applicationRunner2(RoleRepository roleRepository) {
+        return args -> {
+            if (roleRepository.findByName("ADMIN").isEmpty()) {
+                Role role = Role.builder()
+                        .name("ADMIN")
+                        .build();
+                roleRepository.save(role);
+            }
+            if (roleRepository.findByName("USER").isEmpty()) {
+                Role role = Role.builder()
+                        .name("USER")
+                        .build();
+                roleRepository.save(role);
+            }
+        };
+    }
+
+    @Bean
     ApplicationRunner applicationRunner(UserRepository userRepository, RoleRepository roleRepository) {
         return args -> {
             if (userRepository.findByEmail("admin@admin.com").isEmpty()) {
