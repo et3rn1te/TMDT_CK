@@ -5,6 +5,8 @@ import lombok.*;
 import org.nlu.backend.dto.request.course.*;
 import org.nlu.backend.dto.response.course.*;
 import org.nlu.backend.entity.Course;
+import org.nlu.backend.exception.AppException;
+import org.nlu.backend.exception.ErrorCode;
 import org.nlu.backend.mapper.CourseMapper;
 import org.nlu.backend.repository.CourseRepository;
 import org.springframework.stereotype.Service;
@@ -35,7 +37,7 @@ public class CourseService implements ICourseService {
     @Override
     public CourseResponse updateCourse(Long id, CourseUpdateRequest request) {
         Course course = courseRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Course not found"));
+                .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
         courseMapper.updateCourseFromRequest(request, course);
         course = courseRepository.save(course);
         return courseMapper.toCourseResponse(course);
@@ -44,7 +46,7 @@ public class CourseService implements ICourseService {
     @Override
     public void updateCourseStatus(Long id, CourseStatusUpdateRequest request) {
         Course course = courseRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Course not found"));
+                .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
         courseMapper.updateCourseStatusFromRequest(request, course);
         courseRepository.save(course);
     }
@@ -53,7 +55,7 @@ public class CourseService implements ICourseService {
     @Transactional(readOnly = true)
     public CourseResponse getCourseById(Long id) {
         Course course = courseRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Course not found"));
+                .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
         return courseMapper.toCourseResponse(course);
     }
 

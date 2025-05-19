@@ -6,6 +6,8 @@ import lombok.experimental.FieldDefaults;
 import org.nlu.backend.dto.request.level.LevelCreationRequest;
 import org.nlu.backend.dto.response.level.LevelResponse;
 import org.nlu.backend.entity.Level;
+import org.nlu.backend.exception.AppException;
+import org.nlu.backend.exception.ErrorCode;
 import org.nlu.backend.mapper.LevelMapper;
 import org.nlu.backend.repository.LevelRepository;
 import org.springframework.stereotype.Service;
@@ -22,7 +24,7 @@ public class LevelService implements ILevelService{
     @Override
     public LevelResponse createLevel(LevelCreationRequest request) {
         if (levelRepository.existsByName(request.getName())) {
-            throw new RuntimeException("Level already exists");
+            throw new AppException(ErrorCode.LEVEL_EXISTED);
         }
         Level level = levelMapper.toLevel(request);
         return levelMapper.toLevelResponse(levelRepository.save(level));
@@ -33,7 +35,7 @@ public class LevelService implements ILevelService{
         return levelMapper
                 .toLevelResponse(levelRepository
                         .findById(id)
-                        .orElseThrow(() -> new RuntimeException("Level not found")));
+                        .orElseThrow(() -> new AppException(ErrorCode.LEVEL_NOT_EXISTED)));
     }
 
     @Override

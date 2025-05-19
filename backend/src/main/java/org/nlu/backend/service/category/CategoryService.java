@@ -6,6 +6,8 @@ import lombok.experimental.FieldDefaults;
 import org.nlu.backend.dto.request.category.CategoryCreationRequest;
 import org.nlu.backend.dto.response.category.CategoryResponse;
 import org.nlu.backend.entity.Category;
+import org.nlu.backend.exception.AppException;
+import org.nlu.backend.exception.ErrorCode;
 import org.nlu.backend.mapper.CategoryMapper;
 import org.nlu.backend.repository.CategoryRepository;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,7 +25,7 @@ public class CategoryService implements ICategoryService {
     @Override
     public CategoryResponse createCategory(CategoryCreationRequest request) {
         if (categoryRepository.existsByName(request.getName())) {
-            throw new RuntimeException("Category name already exists");
+            throw new AppException(ErrorCode.CATEGORY_EXISTED);
         }
         Category category = categoryMapper.toCategory(request);
         return categoryMapper.toCategoryResponse(categoryRepository.save(category));
@@ -32,7 +34,7 @@ public class CategoryService implements ICategoryService {
     @Override
     public CategoryResponse getCategory(Long id) {
         Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Category not found"));
+                .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_EXISTED));
 
         return categoryMapper.toCategoryResponse(category);
     }
