@@ -2,7 +2,8 @@ package org.nlu.backend.dto.response.course;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import org.nlu.backend.dto.response.course.lesson.LessonSummaryResponse;
+import org.nlu.backend.dto.response.lesson.LessonSummaryResponse;
+import org.nlu.backend.dto.response.seller.SellerResponse;
 
 import java.math.BigDecimal;
 import java.util.List;

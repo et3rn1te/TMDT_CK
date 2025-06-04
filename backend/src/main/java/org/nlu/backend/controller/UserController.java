@@ -8,7 +8,6 @@ import org.nlu.backend.dto.request.UserCreationRequest;
 import org.nlu.backend.dto.response.UserResponse;
 import org.nlu.backend.service.UserService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;

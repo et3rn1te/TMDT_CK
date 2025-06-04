@@ -6,7 +6,7 @@ import org.mapstruct.MappingTarget;
 import org.nlu.backend.dto.request.course.CourseCreationRequest;
 import org.nlu.backend.dto.request.course.CourseStatusUpdateRequest;
 import org.nlu.backend.dto.request.course.CourseUpdateRequest;
-import org.nlu.backend.dto.response.admin.course.AdminCourseResponse;
+import org.nlu.backend.dto.response.admin.AdminCourseResponse;
 import org.nlu.backend.dto.response.course.CourseResponse;
 import org.nlu.backend.dto.response.course.CourseSummaryResponse;
 import org.nlu.backend.entity.Course;

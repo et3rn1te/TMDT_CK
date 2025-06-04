@@ -3,6 +3,8 @@ package org.nlu.backend.dto.response;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.util.Set;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -14,4 +16,5 @@ public class UserResponse {
     String fullName;
     String phone;
     String address;
+    Set<String> roles;
 }

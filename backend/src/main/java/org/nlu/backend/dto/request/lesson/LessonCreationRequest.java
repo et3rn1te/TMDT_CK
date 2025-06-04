@@ -1,4 +1,4 @@
-package org.nlu.backend.dto.request.course.lesson;
+package org.nlu.backend.dto.request.lesson;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;

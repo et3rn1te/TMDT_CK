@@ -1,4 +1,4 @@
-package org.nlu.backend.dto.response.admin.course.lesson;
+package org.nlu.backend.dto.response.lesson;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -9,12 +9,14 @@ import lombok.experimental.FieldDefaults;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 
-// When to use : return a course's details for the admin dashboard
-public class AdminLessonResponse {
+// When to use : return a lesson's details
+public class LessonResponse {
     private Long id;
     private String title;
     private Integer order;
-    private String courseTitle;
+    private String description;
+    private String videoUrl;
+    private String fileUrl;
     private Long courseId;
-    private String createdBy;
+    private String courseTitle;  // optional
 }

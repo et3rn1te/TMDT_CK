@@ -1,4 +1,4 @@
-package org.nlu.backend.dto.request.course.enrollment;
+package org.nlu.backend.dto.request.enrollment;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;

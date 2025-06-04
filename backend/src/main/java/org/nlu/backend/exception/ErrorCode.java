@@ -24,6 +24,8 @@ public enum ErrorCode {
     COURSE_EXISTED(1014, "Course already existed", HttpStatus.NOT_FOUND),
     USER_NOT_FOUND(1015, "User not exist", HttpStatus.NOT_FOUND),
     ALREADY_ENROLLED(1016, "User already enrolled", HttpStatus.CONFLICT),
+    ACCESS_DENIED(1017, "Access denied", HttpStatus.FORBIDDEN),
+    INVALID_COURSE_STATUS(1018, "Invalid course status", HttpStatus.BAD_REQUEST),
     ;
 
     private int code;

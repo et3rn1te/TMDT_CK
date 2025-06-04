@@ -28,16 +28,23 @@ const Login: React.FC = () => {
             
             const data = await response.json();
             
-            if (data.code === 0 && data.data.authenticated) {
-                // Save token and login info
-                login(data.data.token, email);
-                // Redirect to home page
+            // Kiểm tra response.ok và code thành công từ API
+            if (response.ok && data.code === 0 && data.data.authenticated) {
+                const { token, user } = data.data; // Giả định data.data chứa token và user object
+                const userEmailFromResponse = user?.email || email; // Lấy email từ user object hoặc dùng email đã nhập
+                const userRoles = user?.roles || []; // Lấy mảng vai trò từ user object, mặc định là mảng rỗng nếu không có
+                
+                // Lưu token, email và vai trò vào AuthContext
+                login(userEmailFromResponse, token, userRoles); 
+                
+                // Điều hướng về trang chủ
                 navigate('/');
             } else {
-                setError('Login failed. Please check your credentials.');
+                // Hiển thị thông báo lỗi từ backend hoặc thông báo mặc định
+                setError(data.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin đăng nhập.');
             }
         } catch (err) {
-            setError('An error occurred during login. Please try again.');
+            setError('Đã xảy ra lỗi trong quá trình đăng nhập. Vui lòng thử lại.');
             console.error('Login error:', err);
         }
     };
@@ -45,52 +52,52 @@ const Login: React.FC = () => {
     return (
         <div className="min-h-screen bg-gray-50">
             <Navbar />
-        <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-            <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow">
-                <Link to="/">
-                <button className="text-sm text-gray-600 mb-4">&larr; Về trang chủ</button>
-                </Link>
-                <h2 className="text-3xl font-semibold mb-2">Welcome!</h2>
-                <p className="text-gray-500 mb-6">Create a free account or log in to get started with us</p>
-                {error && <p className="text-red-500 mb-4">{error}</p>}
-                <form className="space-y-4" onSubmit={handleSubmit}>
-                    <div>
-                        <input
-                            type="email"
-                            placeholder="Email"
-                            className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                        />
-                    </div>
-                    <div>
-                        <input
-                            type="password"
-                            placeholder="Password"
-                            className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                        />
-                    </div>
-                    <div className="flex justify-end text-sm text-gray-600">
-                        <Link to="/forgotpassword" className="text-blue-500 hover:underline">
-                        <button type="button">Forgot password?</button>
-                        </Link>
-                    </div>
-                    <button type="submit" className="w-full bg-black text-white p-3 rounded-lg">Log In</button>
-                    <button type="button" className="w-full bg-black text-white p-3 rounded-lg flex items-center justify-center space-x-2">
-                        <FcGoogle size={24} />
-                        <span>Log in with Google</span>
-                    </button>
-                    <button type="button" className="w-full bg-black text-white p-3 rounded-lg flex items-center justify-center space-x-2">
-                        <FaFacebook size={24} color="#1877F2" />
-                        <span>Log in with Facebook</span>
-                    </button>
-                </form>
+            <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
+                <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow">
+                    <Link to="/">
+                        <button className="text-sm text-gray-600 mb-4">&larr; Về trang chủ</button>
+                    </Link>
+                    <h2 className="text-3xl font-semibold mb-2">Welcome!</h2>
+                    <p className="text-gray-500 mb-6">Create a free account or log in to get started with us</p>
+                    {error && <p className="text-red-500 mb-4">{error}</p>}
+                    <form className="space-y-4" onSubmit={handleSubmit}>
+                        <div>
+                            <input
+                                type="email"
+                                placeholder="Email"
+                                className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
+                            />
+                        </div>
+                        <div>
+                            <input
+                                type="password"
+                                placeholder="Password"
+                                className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                            />
+                        </div>
+                        <div className="flex justify-end text-sm text-gray-600">
+                            <Link to="/forgotpassword" className="text-blue-500 hover:underline">
+                                <button type="button">Forgot password?</button>
+                            </Link>
+                        </div>
+                        <button type="submit" className="w-full bg-black text-white p-3 rounded-lg">Log In</button>
+                        <button type="button" className="w-full bg-black text-white p-3 rounded-lg flex items-center justify-center space-x-2">
+                            <FcGoogle size={24} />
+                            <span>Log in with Google</span>
+                        </button>
+                        <button type="button" className="w-full bg-black text-white p-3 rounded-lg flex items-center justify-center space-x-2">
+                            <FaFacebook size={24} color="#1877F2" />
+                            <span>Log in with Facebook</span>
+                        </button>
+                    </form>
+                </div>
             </div>
-        </div>
             <Footer />
         </div>
     );

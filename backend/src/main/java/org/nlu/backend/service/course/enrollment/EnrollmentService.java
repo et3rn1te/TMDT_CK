@@ -1,7 +1,7 @@
 package org.nlu.backend.service.course.enrollment;
 
 import lombok.RequiredArgsConstructor;
-import org.nlu.backend.dto.request.course.enrollment.CourseEnrollmentRequest;
+import org.nlu.backend.dto.request.enrollment.CourseEnrollmentRequest;
 import org.nlu.backend.entity.*;
 import org.nlu.backend.repository.*;
 import org.nlu.backend.exception.*;
