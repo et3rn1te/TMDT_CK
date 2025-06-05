@@ -6,14 +6,14 @@ import org.mapstruct.MappingTarget;
 import org.nlu.backend.dto.request.course.CourseCreationRequest;
 import org.nlu.backend.dto.request.course.CourseStatusUpdateRequest;
 import org.nlu.backend.dto.request.course.CourseUpdateRequest;
-import org.nlu.backend.dto.response.admin.course.AdminCourseResponse;
+import org.nlu.backend.dto.response.admin.AdminCourseResponse;
 import org.nlu.backend.dto.response.course.CourseResponse;
 import org.nlu.backend.dto.response.course.CourseSummaryResponse;
 import org.nlu.backend.entity.Course;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring", uses = {UserMapper.class, LessonMapper.class})
+@Mapper(componentModel = "spring", uses = {UserMapper.class, LessonMapper.class, CategoryMapper.class, LevelMapper.class})
 public interface CourseMapper {
 
     // CREATE
@@ -21,6 +21,7 @@ public interface CourseMapper {
     @Mapping(source = "levelId", target = "level.id")
     @Mapping(source = "sellerId", target = "seller.id")
     @Mapping(target = "status", constant = "DRAFT")
+    @Mapping(source = "thumbnailUrl", target = "thumbnailUrl")
     Course toCourse(CourseCreationRequest request);
 
     // UPDATE
@@ -30,17 +31,17 @@ public interface CourseMapper {
     void updateCourseStatusFromRequest(CourseStatusUpdateRequest request, @MappingTarget Course course);
 
     // ENTITY → RESPONSE
-    @Mapping(source = "category.name", target = "categoryName")
-    @Mapping(source = "level.name", target = "levelName")
+    @Mapping(source = "category", target = "category")
+    @Mapping(source = "level", target = "level")
     @Mapping(source = "seller", target = "seller")
     @Mapping(source = "status", target = "status")
     @Mapping(source = "lessons", target = "lessons")
+    @Mapping(source = "thumbnailUrl", target = "thumbnailUrl")
     CourseResponse toCourseResponse(Course course);
 
     // ENTITY → SUMMARY RESPONSE
     @Mapping(source = "seller.fullName", target = "sellerName")
-    @Mapping(source = "category.name", target = "categoryName")
-    @Mapping(target = "thumbnailUrl", constant = "https://picsum.photos/1080/1920")
+    @Mapping(source = "category", target = "category")
     CourseSummaryResponse toCourseSummaryResponse(Course course);
 
     // ENTITY → ADMIN RESPONSE
@@ -51,6 +52,7 @@ public interface CourseMapper {
 
     // Optional: list mapping
     List<CourseSummaryResponse> toCourseSummaryResponses(List<Course> courses);
+
     List<CourseResponse> toCourseResponses(List<Course> courses);
 }
 

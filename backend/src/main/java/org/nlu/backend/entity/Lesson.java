@@ -34,4 +34,7 @@ public class Lesson extends BaseEntity {
 
     @Column(name = "file_url")
     String fileUrl;
+
+    @Column(name = "is_preview", nullable = false)
+    boolean isPreview;
 }

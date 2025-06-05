@@ -1,22 +1,50 @@
-import { useState } from 'react';
-import { Search, ShoppingCart, Menu, X, User } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Search, ShoppingCart, Menu, X, User, PlusCircle, LayoutDashboard } from 'lucide-react'; // Added PlusCircle and LayoutDashboard icons
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from '../context/AuthContext';
-// import logo from '../assets/logo.svg'; // Bạn cần thêm logo vào thư mục assets
+import { useAuth } from '../context/AuthContext'; // Assuming useAuth provides userRole
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { isAuthenticated, userEmail, logout } = useAuth();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const { isAuthenticated, userEmail, userRole, logout } = useAuth(); // Destructure userRole
   const navigate = useNavigate();
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
+  const toggleDropdown = () => {
+    setIsDropdownOpen(!isDropdownOpen);
+  };
+
   const handleLogout = () => {
     logout();
+    setIsDropdownOpen(false);
     navigate('/');
   };
+
+  const handleProfileClick = () => {
+    setIsDropdownOpen(false);
+    navigate('/profile');
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // Check if the user has ADMIN or SELLER role
+  const isAdminOrSeller = userRole === 'ADMIN' || userRole === 'SELLER';
 
   return (
     <nav className="bg-white shadow-md">
@@ -74,14 +102,76 @@ const Navbar = () => {
             </div>
             
             {isAuthenticated ? (
-              <div className="ml-4 flex items-center">
-                <span className="text-gray-700 mr-4">{userEmail}</span>
+              // User Dropdown
+              <div className="ml-4 relative" ref={dropdownRef}>
                 <button
-                  onClick={handleLogout}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                  onClick={toggleDropdown}
+                  type="button"
+                  className="max-w-xs bg-gray-800 rounded-full flex items-center text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white"
+                  id="user-menu-button"
+                  aria-expanded="false"
+                  aria-haspopup="true"
                 >
-                  Đăng xuất
+                  <span className="sr-only">Open user menu</span>
+                  {/* You can replace this with an actual user avatar if available */}
+                  <User className="h-8 w-8 rounded-full text-white" /> 
                 </button>
+                {isDropdownOpen && (
+                  <div
+                    className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-10"
+                    role="menu"
+                    aria-orientation="vertical"
+                    aria-labelledby="user-menu-button"
+                    tabIndex={-1}
+                  >
+                    <div className="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabIndex={-1} id="user-menu-item-0">
+                      {userEmail}
+                    </div>
+                    <Link 
+                      to="/profile" 
+                      onClick={handleProfileClick} // Close dropdown when navigating
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" 
+                      role="menuitem" 
+                      tabIndex={-1} 
+                      id="user-menu-item-1"
+                    >
+                      Thông tin cá nhân
+                    </Link>
+                    {isAdminOrSeller && (
+                      <>
+                        <Link 
+                          to="/add-course" 
+                          onClick={() => setIsDropdownOpen(false)} // Close dropdown
+                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" 
+                          role="menuitem" 
+                          tabIndex={-1} 
+                          id="user-menu-item-3"
+                        >
+                          <PlusCircle className="h-4 w-4 mr-2" /> Thêm khóa học
+                        </Link>
+                        <Link 
+                          to="/manage-courses" 
+                          onClick={() => setIsDropdownOpen(false)} // Close dropdown
+                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" 
+                          role="menuitem" 
+                          tabIndex={-1} 
+                          id="user-menu-item-4"
+                        >
+                          <LayoutDashboard className="h-4 w-4 mr-2" /> Quản lý khóa học
+                        </Link>
+                      </>
+                    )}
+                    <button
+                      onClick={handleLogout}
+                      className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                      role="menuitem"
+                      tabIndex={-1}
+                      id="user-menu-item-2"
+                    >
+                      Đăng xuất
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
               <>
@@ -156,6 +246,24 @@ const Navbar = () => {
           >
             Liên hệ
           </a>
+          {isAdminOrSeller && (
+            <>
+              <Link 
+                to="/add-course" 
+                onClick={() => setIsMenuOpen(false)}
+                className="border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 block pl-3 pr-4 py-2 border-l-4 text-base font-medium"
+              >
+                Thêm khóa học
+              </Link>
+              <Link 
+                to="/manage-courses" 
+                onClick={() => setIsMenuOpen(false)}
+                className="border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 block pl-3 pr-4 py-2 border-l-4 text-base font-medium"
+              >
+                Quản lý khóa học
+              </Link>
+            </>
+          )}
         </div>
         <div className="pt-4 pb-3 border-t border-gray-200">
           <div className="flex items-center px-4">

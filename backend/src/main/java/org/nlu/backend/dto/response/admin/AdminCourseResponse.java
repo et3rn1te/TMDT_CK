@@ -1,8 +1,8 @@
-package org.nlu.backend.dto.response.admin.course;
+package org.nlu.backend.dto.response.admin;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import org.nlu.backend.dto.response.course.SellerResponse;
+import org.nlu.backend.dto.response.seller.SellerResponse;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

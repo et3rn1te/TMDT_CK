@@ -2,9 +2,9 @@ package org.nlu.backend.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.nlu.backend.dto.request.course.lesson.LessonCreationRequest;
-import org.nlu.backend.dto.response.course.lesson.LessonResponse;
-import org.nlu.backend.dto.response.course.lesson.LessonSummaryResponse;
+import org.nlu.backend.dto.request.lesson.LessonCreationRequest;
+import org.nlu.backend.dto.response.lesson.LessonResponse;
+import org.nlu.backend.dto.response.lesson.LessonSummaryResponse;
 import org.nlu.backend.entity.Lesson;
 
 @Mapper(componentModel = "spring")

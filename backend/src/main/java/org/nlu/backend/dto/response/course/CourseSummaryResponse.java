@@ -2,6 +2,7 @@ package org.nlu.backend.dto.response.course;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import org.nlu.backend.dto.response.category.CategoryResponse;
 
 import java.math.BigDecimal;
 
@@ -17,6 +18,7 @@ public class CourseSummaryResponse {
     private String title;
     private BigDecimal price;
     private BigDecimal discountPrice;
+    private CategoryResponse category;
     private String thumbnailUrl; // Keep empty for now
     private String sellerName;
     private String categoryName;

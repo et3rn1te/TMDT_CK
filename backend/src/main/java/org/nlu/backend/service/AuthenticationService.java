@@ -13,9 +13,11 @@ import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
 import org.nlu.backend.dto.request.AuthenticationRequest;
 import org.nlu.backend.dto.response.AuthenticationResponse;
+import org.nlu.backend.dto.response.UserResponse;
 import org.nlu.backend.entity.User;
 import org.nlu.backend.exception.AppException;
 import org.nlu.backend.exception.ErrorCode;
+import org.nlu.backend.mapper.UserMapper;
 import org.nlu.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -36,6 +38,7 @@ public class AuthenticationService {
 
     UserRepository userRepository;
     PasswordEncoder passwordEncoder;
+    private final UserMapper userMapper;
 
     @NonFinal
     @Value("${jwt.signerKey}")
@@ -56,9 +59,12 @@ public class AuthenticationService {
 
         var token = generateToken(user);
 
+        UserResponse userResponse = userMapper.toUserResponse(user);
+
         return AuthenticationResponse.builder()
                 .token(token)
                 .authenticated(true)
+                .user(userResponse)
                 .build();
     }
 

@@ -1,4 +1,4 @@
-package org.nlu.backend.dto.response.course.lesson;
+package org.nlu.backend.dto.response.lesson;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -14,4 +14,5 @@ public class LessonSummaryResponse {
     private Long id;
     private String title;
     private Integer order;
+    private boolean isPreview;
 }

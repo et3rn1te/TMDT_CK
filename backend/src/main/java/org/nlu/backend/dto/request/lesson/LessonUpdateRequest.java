@@ -1,4 +1,4 @@
-package org.nlu.backend.dto.request.course.lesson;
+package org.nlu.backend.dto.request.lesson;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -14,4 +14,5 @@ public class LessonUpdateRequest {
     private String description;
     private String videoUrl;
     private String fileUrl;
+    private boolean isPreview;
 }
