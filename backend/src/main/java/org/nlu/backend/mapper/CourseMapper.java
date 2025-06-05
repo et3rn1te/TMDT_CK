@@ -41,7 +41,7 @@ public interface CourseMapper {
 
     // ENTITY → SUMMARY RESPONSE
     @Mapping(source = "seller.fullName", target = "sellerName")
-    @Mapping(source = "category.name", target = "categoryName")
+    @Mapping(source = "category", target = "category")
     CourseSummaryResponse toCourseSummaryResponse(Course course);
 
     // ENTITY → ADMIN RESPONSE

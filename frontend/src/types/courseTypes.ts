@@ -1,6 +1,7 @@
 import {SellerResponse} from './userTypes';
 import {LessonSummaryResponse} from "./lessonTypes.ts";
 import {CategoryResponse} from "./categoryTypes.ts";
+import {LevelResponse} from "./levelTypes.ts";
 
 export enum CourseStatus {
     DRAFT = 'DRAFT',
@@ -57,7 +58,7 @@ export interface CourseSummaryResponse {
     discountPrice: number | null;
     thumbnailUrl: string;
     sellerName: string;
-    categoryId: number;
+    category: CategoryResponse;
     status: string;
 }
 
@@ -68,9 +69,10 @@ export interface CourseResponse {
     price: number;
     discountPrice: number | null;
     category: CategoryResponse;
-    level: SellerResponse;
+    level: LevelResponse;
     seller: SellerResponse;
     status: string;
     lessons: LessonSummaryResponse[];
     thumbnailUrl: string;
+    videoUrl: string;
 }
