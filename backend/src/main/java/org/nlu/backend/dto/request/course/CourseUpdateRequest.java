@@ -18,5 +18,6 @@ public class CourseUpdateRequest {
 
     private Long categoryId; // category's id of the course
     private Long levelId; // level's id of the course
-    private Long sellerId; // seller's id of the course
+
+    private String thumbnailUrl;
 }

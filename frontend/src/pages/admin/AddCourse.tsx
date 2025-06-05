@@ -1,467 +1,489 @@
-import React, { useState } from 'react';
-import { BookOpen, DollarSign, FileText, Info, CheckCircle } from 'lucide-react';
-import { courseApi } from '../../api/courses'; // Import courseApi
-import { CourseCreationRequest } from '../../types/courseTypes'; // Import CourseCreationRequest type
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Info, CheckCircle, BookOpen, Tag, DollarSign, Image, ArrowRight, ArrowLeft, Check, X } from 'lucide-react'; // Updated icons
+import { courseApi } from '../../api/courses';
+import { categoryApi } from '../../api/categories';
+import { levelApi } from '../../api/levels';
+import { CourseCreationRequest } from '../../types/courseTypes';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
+import {CategoryResponse} from "../../types/categoryTypes.ts";
+import {LevelResponse} from "../../types/levelTypes.ts";
 
-const AddCoursePage = () => {
-  const [currentStep, setCurrentStep] = useState(1);
-  const [courseDetails, setCourseDetails] = useState<CourseCreationRequest & { imageUrl: string, sections: { title: string; lectures: { title: string; videoUrl: string; }[]; }[] }>({
-    title: '',
-    description: '',
-    category: '', // This should be categoryId in CourseCreationRequest
-    price: '',    // This should be number in CourseCreationRequest
-    imageUrl: '', // This field is not directly in CourseCreationRequest, but used in UI
-    sections: [{ title: '', lectures: [{ title: '', videoUrl: '' }] }],
-    categoryId: 0, // Initialize categoryId
-    levelId: 0,    // Initialize levelId
-    sellerId: 0,   // Initialize sellerId (will be set by backend based on authenticated user)
-  });
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+const AddCoursePage: React.FC = () => {
+    const navigate = useNavigate();
 
-  // Handle input changes for course details
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setCourseDetails({ ...courseDetails, [name]: value });
-  };
-
-  // Handle input changes for sections and lectures
-  const handleSectionChange = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
-    const newSections = [...courseDetails.sections];
-    newSections[index].title = e.target.value;
-    setCourseDetails({ ...courseDetails, sections: newSections });
-  };
-
-  const handleLectureChange = (sectionIndex: number, lectureIndex: number, e: React.ChangeEvent<HTMLInputElement>) => {
-    const newSections = [...courseDetails.sections];
-    newSections[sectionIndex].lectures[lectureIndex].title = e.target.value;
-    setCourseDetails({ ...courseDetails, sections: newSections });
-  };
-
-  const handleVideoUrlChange = (sectionIndex: number, lectureIndex: number, e: React.ChangeEvent<HTMLInputElement>) => {
-    const newSections = [...courseDetails.sections];
-    newSections[sectionIndex].lectures[lectureIndex].videoUrl = e.target.value;
-    setCourseDetails({ ...courseDetails, sections: newSections });
-  };
-
-  // Add a new section
-  const addSection = () => {
-    setCourseDetails({
-      ...courseDetails,
-      sections: [...courseDetails.sections, { title: '', lectures: [{ title: '', videoUrl: '' }] }],
-    });
-  };
-
-  // Add a new lecture to a specific section
-  const addLecture = (sectionIndex: number) => {
-    const newSections = [...courseDetails.sections];
-    newSections[sectionIndex].lectures.push({ title: '', videoUrl: '' });
-    setCourseDetails({ ...courseDetails, sections: newSections });
-  };
-
-  // Remove a section
-  const removeSection = (index: number) => {
-    const newSections = courseDetails.sections.filter((_, i) => i !== index);
-    setCourseDetails({ ...courseDetails, sections: newSections });
-  };
-
-  // Remove a lecture from a specific section
-  const removeLecture = (sectionIndex: number, lectureIndex: number) => {
-    const newSections = [...courseDetails.sections];
-    newSections[sectionIndex].lectures = newSections[sectionIndex].lectures.filter((_, i) => i !== lectureIndex);
-    setCourseDetails({ ...courseDetails, sections: newSections });
-  };
-
-  // Navigate to the next step
-  const nextStep = () => {
-    // Basic validation for current step before moving next
-    if (currentStep === 1) {
-      if (!courseDetails.title || !courseDetails.description || !courseDetails.categoryId || !courseDetails.imageUrl) {
-        setError('Vui lòng điền đầy đủ thông tin cơ bản.');
-        return;
-      }
-    } else if (currentStep === 2) {
-      if (isNaN(Number(courseDetails.price)) || Number(courseDetails.price) <= 0) {
-        setError('Vui lòng nhập giá khóa học hợp lệ.');
-        return;
-      }
-    }
-    setError(null); // Clear previous errors
-    setCurrentStep((prevStep) => prevStep + 1);
-  };
-
-  // Navigate to the previous step
-  const prevStep = () => {
-    setError(null); // Clear errors when going back
-    setCurrentStep((prevStep) => prevStep - 1);
-  };
-
-  // Handle form submission
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError(null);
-    setSuccessMessage(null);
-
-    try {
-      // Prepare data for API call
-      const dataToSend: CourseCreationRequest = {
-        title: courseDetails.title,
-        description: courseDetails.description,
-        price: Number(courseDetails.price),
-        discountPrice: courseDetails.discountPrice ? Number(courseDetails.discountPrice) : null,
-        categoryId: Number(courseDetails.categoryId),
-        levelId: Number(courseDetails.levelId),
-        sellerId: courseDetails.sellerId, // This should ideally be handled by backend from auth context
-      };
-
-      // Call the API
-      await courseApi.createCourse(dataToSend);
-      setSuccessMessage('Khóa học đã được tạo thành công!');
-      // Reset form and navigate to first step
-      setCourseDetails({
+    const [currentStep, setCurrentStep] = useState(1);
+    const [formData, setFormData] = useState<CourseCreationRequest>({
         title: '',
         description: '',
-        category: '',
-        price: '',
-        imageUrl: '',
-        sections: [{ title: '', lectures: [{ title: '', videoUrl: '' }] }],
+        price: 0,
+        discountPrice: null,
         categoryId: 0,
         levelId: 0,
-        sellerId: 0,
-      });
-      setCurrentStep(1);
-    } catch (err) {
-      console.error('Error creating course:', err);
-      setError(err instanceof Error ? err.message : 'Đã xảy ra lỗi khi tạo khóa học.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+        sellerId: 0, // This will be set by backend based on authenticated user
+        thumbnailUrl: '',
+    });
+    const [categories, setCategories] = useState<CategoryResponse[]>([]);
+    const [levels, setLevels] = useState<LevelResponse[]>([]);
 
-  // Render content based on the current step
-  const renderStepContent = () => {
-    switch (currentStep) {
-      case 1:
-        return (
-          <div className="space-y-4">
-            <h2 className="text-2xl font-semibold text-gray-800">Thông tin cơ bản</h2>
-            <div>
-              <label htmlFor="title" className="block text-sm font-medium text-gray-700">Tiêu đề khóa học</label>
-              <input
-                type="text"
-                name="title"
-                id="title"
-                value={courseDetails.title}
-                onChange={handleInputChange}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2"
-                placeholder="Nhập tiêu đề khóa học"
-                required
-              />
-            </div>
-            <div>
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700">Mô tả khóa học</label>
-              <textarea
-                name="description"
-                id="description"
-                value={courseDetails.description}
-                onChange={handleInputChange}
-                rows={4}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2"
-                placeholder="Mô tả chi tiết về khóa học"
-                required
-              ></textarea>
-            </div>
-            <div>
-              <label htmlFor="categoryId" className="block text-sm font-medium text-gray-700">Danh mục</label>
-              <select
-                name="categoryId"
-                id="categoryId"
-                value={courseDetails.categoryId}
-                onChange={handleInputChange}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2"
-                required
-              >
-                <option value="0">Chọn danh mục</option>
-                {/* Replace with dynamic categories fetched from API */}
-                <option value="1">Ngôn ngữ</option>
-                <option value="2">Lập trình</option>
-                <option value="3">Thiết kế</option>
-                <option value="4">Kinh doanh</option>
-              </select>
-            </div>
-            <div>
-              <label htmlFor="levelId" className="block text-sm font-medium text-gray-700">Cấp độ</label>
-              <select
-                name="levelId"
-                id="levelId"
-                value={courseDetails.levelId}
-                onChange={handleInputChange}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2"
-                required
-              >
-                <option value="0">Chọn cấp độ</option>
-                {/* Replace with dynamic levels fetched from API */}
-                <option value="1">Cơ bản</option>
-                <option value="2">Trung cấp</option>
-                <option value="3">Nâng cao</option>
-              </select>
-            </div>
-            <div>
-              <label htmlFor="imageUrl" className="block text-sm font-medium text-gray-700">URL ảnh bìa</label>
-              <input
-                type="text"
-                name="imageUrl"
-                id="imageUrl"
-                value={courseDetails.imageUrl}
-                onChange={handleInputChange}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2"
-                placeholder="Ví dụ: https://example.com/course-image.jpg"
-                required
-              />
-            </div>
-          </div>
-        );
-      case 2:
-        return (
-          <div className="space-y-4">
-            <h2 className="text-2xl font-semibold text-gray-800">Giá khóa học</h2>
-            <div>
-              <label htmlFor="price" className="block text-sm font-medium text-gray-700">Giá (VNĐ)</label>
-              <input
-                type="number"
-                name="price"
-                id="price"
-                value={courseDetails.price}
-                onChange={handleInputChange}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2"
-                placeholder="Nhập giá khóa học"
-                min="0"
-                required
-              />
-            </div>
-            <div>
-              <label htmlFor="discountPrice" className="block text-sm font-medium text-gray-700">Giá khuyến mãi (VNĐ - Tùy chọn)</label>
-              <input
-                type="number"
-                name="discountPrice"
-                id="discountPrice"
-                value={courseDetails.discountPrice || ''}
-                onChange={handleInputChange}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2"
-                placeholder="Nhập giá khuyến mãi nếu có"
-                min="0"
-              />
-            </div>
-          </div>
-        );
-      case 3:
-        return (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-semibold text-gray-800">Nội dung khóa học</h2>
-            {courseDetails.sections.map((section, sectionIndex) => (
-              <div key={sectionIndex} className="border border-gray-200 rounded-md p-4 bg-gray-50 relative">
-                <h3 className="text-lg font-medium text-gray-700 mb-3">Chương {sectionIndex + 1}</h3>
-                <div className="flex items-center space-x-2 mb-3">
-                  <input
-                    type="text"
-                    value={section.title}
-                    onChange={(e) => handleSectionChange(sectionIndex, e)}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2"
-                    placeholder={`Tiêu đề chương ${sectionIndex + 1}`}
-                    required
-                  />
-                  {courseDetails.sections.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => removeSection(sectionIndex)}
-                      className="p-2 text-red-600 hover:text-red-800 rounded-full hover:bg-red-100 transition-colors"
-                      title="Xóa chương"
-                    >
-                      <X className="h-5 w-5" />
-                    </button>
-                  )}
-                </div>
+    const [isLoading, setIsLoading] = useState(false); // For form submission
+    const [isDataLoading, setIsDataLoading] = useState(true); // For loading categories/levels
+    const [error, setError] = useState<string | null>(null);
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-                <div className="space-y-3 pl-6 border-l border-gray-300">
-                  {section.lectures.map((lecture, lectureIndex) => (
-                    <div key={lectureIndex} className="flex items-center space-x-2">
-                      <input
-                        type="text"
-                        value={lecture.title}
-                        onChange={(e) => handleLectureChange(sectionIndex, lectureIndex, e)}
-                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2"
-                        placeholder={`Tiêu đề bài giảng ${lectureIndex + 1}`}
-                        required
-                      />
-                      <input
-                        type="text"
-                        value={lecture.videoUrl}
-                        onChange={(e) => handleVideoUrlChange(sectionIndex, lectureIndex, e)}
-                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2"
-                        placeholder={`URL video bài giảng ${lectureIndex + 1}`}
-                        required
-                      />
-                      {section.lectures.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => removeLecture(sectionIndex, lectureIndex)}
-                          className="p-2 text-red-600 hover:text-red-800 rounded-full hover:bg-red-100 transition-colors"
-                          title="Xóa bài giảng"
-                        >
-                          <X className="h-5 w-5" />
-                        </button>
-                      )}
+    useEffect(() => {
+        const fetchDropdownData = async () => {
+            try {
+                setIsDataLoading(true);
+                const [fetchedCategories, fetchedLevels] = await Promise.all([
+                    categoryApi.getAllCategories(),
+                    levelApi.getAllLevels(),
+                ]);
+                setCategories(fetchedCategories);
+                setLevels(fetchedLevels);
+            } catch (err) {
+                console.error("Error fetching categories or levels:", err);
+                setError(err instanceof Error ? err.message : "Không thể tải danh mục hoặc cấp độ.");
+            } finally {
+                setIsDataLoading(false);
+            }
+        };
+        fetchDropdownData();
+    }, []);
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+        const { name, value } = e.target;
+        setFormData((prevData) => ({
+            ...prevData,
+            [name]: (name === 'price' || name === 'discountPrice' || name === 'categoryId' || name === 'levelId')
+                ? Number(value)
+                : value,
+        }));
+    };
+
+    const nextStep = () => {
+        // Basic validation for current step before moving next
+        if (currentStep === 1) { // Basic Info & Price
+            if (!formData.title || !formData.description || formData.categoryId === 0 || formData.levelId === 0 || !formData.thumbnailUrl) {
+                setError('Vui lòng điền đầy đủ thông tin cơ bản và chọn danh mục/cấp độ.');
+                return;
+            }
+            if (isNaN(Number(formData.price)) || Number(formData.price) <= 0) {
+                setError('Vui lòng nhập giá khóa học hợp lệ.');
+                return;
+            }
+        }
+        setError(null); // Clear previous errors
+        setCurrentStep((prevStep) => prevStep + 1);
+    };
+
+    const prevStep = () => {
+        setError(null); // Clear errors when going back
+        setCurrentStep((prevStep) => prevStep - 1);
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsLoading(true);
+        setError(null);
+        setSuccessMessage(null);
+
+        // Final validation before submission
+        if (!formData.title || !formData.description || formData.categoryId === 0 || formData.levelId === 0 || formData.price <= 0 || !formData.thumbnailUrl) {
+            setError('Vui lòng điền đầy đủ và chính xác các thông tin bắt buộc trước khi tạo khóa học.');
+            setIsLoading(false);
+            return;
+        }
+
+        try {
+            await courseApi.createCourse(formData);
+            setSuccessMessage('Khóa học đã được tạo thành công!');
+            // Reset form and navigate to first step or manage courses
+            setFormData({
+                title: '',
+                description: '',
+                price: 0,
+                discountPrice: null,
+                categoryId: 0,
+                levelId: 0,
+                sellerId: 0,
+                thumbnailUrl: '',
+            });
+            setCurrentStep(1); // Reset to first step
+            setTimeout(() => navigate('/manage-courses'), 1500); // Redirect after success message
+        } catch (err) {
+            console.error('Error creating course:', err);
+            setError(err instanceof Error ? err.message : 'Đã xảy ra lỗi khi tạo khóa học.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const renderStepContent = () => {
+        switch (currentStep) {
+            case 1:
+                return (
+                    <div className="space-y-8">
+                        {/* Header */}
+                        <div className="text-center border-b pb-6">
+                            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <BookOpen className="h-8 w-8 text-blue-600" />
+                            </div>
+                            <h2 className="text-2xl font-bold text-gray-900 mb-2">Thông tin khóa học</h2>
+                            <p className="text-gray-600">Điền thông tin cơ bản về khóa học của bạn</p>
+                        </div>
+
+                        {/* Basic Information */}
+                        <div className="grid gap-6">
+                            <div className="space-y-2">
+                                <label htmlFor="title" className="block text-sm font-semibold text-gray-700">
+                                    Tiêu đề khóa học *
+                                </label>
+                                <input
+                                    type="text"
+                                    name="title"
+                                    id="title"
+                                    value={formData.title}
+                                    onChange={handleInputChange}
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-500"
+                                    placeholder="Ví dụ: React.js từ cơ bản đến nâng cao"
+                                    required
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label htmlFor="description" className="block text-sm font-semibold text-gray-700">
+                                    Mô tả khóa học *
+                                </label>
+                                <textarea
+                                    name="description"
+                                    id="description"
+                                    value={formData.description}
+                                    onChange={handleInputChange}
+                                    rows={4}
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-500 resize-none"
+                                    placeholder="Mô tả chi tiết về nội dung, mục tiêu và đối tượng học viên của khóa học..."
+                                    required
+                                ></textarea>
+                            </div>
+
+                            <div className="grid md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <label htmlFor="categoryId" className="block text-sm font-semibold text-gray-700">
+                                        <Tag className="inline h-4 w-4 mr-1" />
+                                        Danh mục *
+                                    </label>
+                                    <select
+                                        name="categoryId"
+                                        id="categoryId"
+                                        value={formData.categoryId}
+                                        onChange={handleInputChange}
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900"
+                                        required
+                                    >
+                                        <option value="0">Chọn danh mục</option>
+                                        {categories.map((cat) => (
+                                            <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label htmlFor="levelId" className="block text-sm font-semibold text-gray-700">
+                                        Cấp độ *
+                                    </label>
+                                    <select
+                                        name="levelId"
+                                        id="levelId"
+                                        value={formData.levelId}
+                                        onChange={handleInputChange}
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900"
+                                        required
+                                    >
+                                        <option value="0">Chọn cấp độ</option>
+                                        {levels.map((lvl) => (
+                                            <option key={lvl.id} value={lvl.id}>{lvl.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label htmlFor="thumbnailUrl" className="block text-sm font-semibold text-gray-700">
+                                    <Image className="inline h-4 w-4 mr-1" />
+                                    URL ảnh bìa *
+                                </label>
+                                <input
+                                    type="url"
+                                    name="thumbnailUrl"
+                                    id="thumbnailUrl"
+                                    value={formData.thumbnailUrl}
+                                    onChange={handleInputChange}
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-500"
+                                    placeholder="https://example.com/course-thumbnail.jpg"
+                                    required
+                                />
+                            </div>
+
+                            {/* Pricing */}
+                            <div className="bg-gray-50 p-6 rounded-lg border-2 border-dashed border-gray-300">
+                                <div className="flex items-center mb-4">
+                                    <DollarSign className="h-5 w-5 text-green-600 mr-2" />
+                                    <h3 className="text-lg font-semibold text-gray-900">Định giá khóa học</h3>
+                                </div>
+                                <div className="grid md:grid-cols-2 gap-6">
+                                    <div className="space-y-2">
+                                        <label htmlFor="price" className="block text-sm font-semibold text-gray-700">
+                                            Giá gốc (VNĐ) *
+                                        </label>
+                                        <input
+                                            type="number"
+                                            name="price"
+                                            id="price"
+                                            value={formData.price}
+                                            onChange={handleInputChange}
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900"
+                                            placeholder="499000"
+                                            min="0"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label htmlFor="discountPrice" className="block text-sm font-semibold text-gray-700">
+                                            Giá khuyến mãi (VNĐ)
+                                        </label>
+                                        <input
+                                            type="number"
+                                            name="discountPrice"
+                                            id="discountPrice"
+                                            value={formData.discountPrice || ''}
+                                            onChange={handleInputChange}
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900"
+                                            placeholder="399000"
+                                            min="0"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={() => addLecture(sectionIndex)}
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 mt-2"
-                  >
-                    Thêm bài giảng
-                  </button>
-                </div>
-              </div>
-            ))}
-            <button
-              type="button"
-              onClick={addSection}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              Thêm chương mới
-            </button>
-          </div>
-        );
-      case 4:
+                );
+
+            case 2:
+                return (
+                    <div className="space-y-8">
+                        {/* Header */}
+                        <div className="text-center border-b pb-6">
+                            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <CheckCircle className="h-8 w-8 text-green-600" />
+                            </div>
+                            <h2 className="text-2xl font-bold text-gray-900 mb-2">Xác nhận thông tin</h2>
+                            <p className="text-gray-600">Kiểm tra lại thông tin trước khi tạo khóa học</p>
+                        </div>
+
+                        {/* Course Preview */}
+                        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
+                            <div className="flex items-start space-x-4">
+                                <div className="w-24 h-16 bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
+                                    {formData.thumbnailUrl ? (
+                                        <img src={formData.thumbnailUrl} alt="Thumbnail Preview" className="object-cover w-full h-full" />
+                                    ) : (
+                                        <Image className="h-8 w-8 text-gray-400" />
+                                    )}
+                                </div>
+                                <div className="flex-1">
+                                    <h3 className="text-xl font-bold text-gray-900 mb-2">{formData.title}</h3>
+                                    <p className="text-gray-600 text-sm mb-3 line-clamp-2">{formData.description}</p>
+                                    <div className="flex items-center space-x-4 text-sm">
+                    <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                      {categories.find(c => c.id === formData.categoryId)?.name}
+                    </span>
+                                        <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full">
+                      {levels.find(l => l.id === formData.levelId)?.name}
+                    </span>
+                                    </div>
+                                </div>
+                                <div className="text-right">
+                                    <div className="text-2xl font-bold text-green-600">
+                                        {formData.discountPrice ?
+                                            `${formData.discountPrice.toLocaleString()}đ` :
+                                            `${formData.price.toLocaleString()}đ`
+                                        }
+                                    </div>
+                                    {formData.discountPrice && (
+                                        <div className="text-sm text-gray-500 line-through">
+                                            {formData.price.toLocaleString()}đ
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Details List */}
+                        <div className="grid gap-4">
+                            <div className="flex justify-between items-center py-3 border-b border-gray-200">
+                                <span className="font-medium text-gray-700">Tiêu đề:</span>
+                                <span className="text-gray-900">{formData.title}</span>
+                            </div>
+                            <div className="flex justify-between items-start py-3 border-b border-gray-200">
+                                <span className="font-medium text-gray-700">Mô tả:</span>
+                                <span className="text-gray-900 text-right max-w-md">{formData.description}</span>
+                            </div>
+                            <div className="flex justify-between items-center py-3 border-b border-gray-200">
+                                <span className="font-medium text-gray-700">Danh mục:</span>
+                                <span className="text-gray-900">{categories.find(c => c.id === formData.categoryId)?.name}</span>
+                            </div>
+                            <div className="flex justify-between items-center py-3 border-b border-gray-200">
+                                <span className="font-medium text-gray-700">Cấp độ:</span>
+                                <span className="text-gray-900">{levels.find(l => l.id === formData.levelId)?.name}</span>
+                            </div>
+                            <div className="flex justify-between items-center py-3 border-b border-gray-200">
+                                <span className="font-medium text-gray-700">Giá gốc:</span>
+                                <span className="text-gray-900 font-semibold">{formData.price.toLocaleString()}đ</span>
+                            </div>
+                            {formData.discountPrice !== null && formData.discountPrice !== 0 && ( // Ensure discountPrice is not null or 0
+                                <div className="flex justify-between items-center py-3 border-b border-gray-200">
+                                    <span className="font-medium text-gray-700">Giá khuyến mãi:</span>
+                                    <span className="text-green-600 font-semibold">{formData.discountPrice.toLocaleString()}đ</span>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                );
+
+            default:
+                return null;
+        }
+    };
+
+    if (isDataLoading) {
         return (
-          <div className="space-y-4 text-center">
-            <h2 className="text-2xl font-semibold text-gray-800">Xem lại và Hoàn tất</h2>
-            <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-            <p className="text-lg text-gray-700">Bạn đã hoàn tất các bước. Vui lòng xem lại thông tin khóa học trước khi gửi.</p>
-            <div className="bg-gray-100 p-4 rounded-md text-left">
-              <h3 className="text-xl font-semibold mb-2">Thông tin khóa học:</h3>
-              <p><strong>Tiêu đề:</strong> {courseDetails.title}</p>
-              <p><strong>Mô tả:</strong> {courseDetails.description}</p>
-              <p><strong>Danh mục ID:</strong> {courseDetails.categoryId}</p>
-              <p><strong>Cấp độ ID:</strong> {courseDetails.levelId}</p>
-              <p><strong>Giá:</strong> {courseDetails.price} VNĐ</p>
-              {courseDetails.discountPrice && <p><strong>Giá khuyến mãi:</strong> {courseDetails.discountPrice} VNĐ</p>}
-              <p><strong>URL ảnh bìa:</strong> {courseDetails.imageUrl}</p>
-              <h4 className="text-lg font-medium mt-4">Nội dung:</h4>
-              {courseDetails.sections.map((section, sectionIndex) => (
-                <div key={sectionIndex} className="mb-2">
-                  <p className="font-semibold">Chương {sectionIndex + 1}: {section.title}</p>
-                  <ul className="list-disc list-inside ml-4">
-                    {section.lectures.map((lecture, lectureIndex) => (
-                      <li key={lectureIndex}>Bài giảng {lectureIndex + 1}: {lecture.title} (URL: {lecture.videoUrl || 'Chưa có'})</li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
+            <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500"></div>
+                <p className="ml-4 text-gray-700">Đang tải dữ liệu...</p>
             </div>
-          </div>
         );
-      default:
-        return null;
     }
-  };
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      <div className="min-h-screen bg-gray-100 p-8">
-        <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-xl p-8">
-          <h1 className="text-3xl font-bold text-gray-900 text-center mb-8">Thêm Khóa học Mới</h1>
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+            <Navbar />
+            <div className="container mx-auto px-4 py-8">
+                <div className="max-w-4xl mx-auto">
+                    {/* Header */}
+                    <div className="text-center mb-12">
+                        <h1 className="text-4xl font-bold text-gray-900 mb-4">Tạo khóa học mới</h1>
+                        <p className="text-lg text-gray-600">Chia sẻ kiến thức của bạn với cộng đồng học viên</p>
+                    </div>
 
-          {/* Step Indicator */}
-          <div className="flex justify-between items-center mb-8">
-            <div className="flex flex-col items-center">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${currentStep >= 1 ? 'bg-indigo-600 text-white' : 'bg-gray-300 text-gray-600'}`}>
-                <Info className="h-5 w-5" />
-              </div>
-              <span className={`text-sm mt-2 ${currentStep >= 1 ? 'text-indigo-600 font-medium' : 'text-gray-600'}`}>Thông tin</span>
-            </div>
-            <div className={`flex-1 h-1 ${currentStep > 1 ? 'bg-indigo-600' : 'bg-gray-300'}`}></div>
-            <div className="flex flex-col items-center">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${currentStep >= 2 ? 'bg-indigo-600 text-white' : 'bg-gray-300 text-gray-600'}`}>
-                <DollarSign className="h-5 w-5" />
-              </div>
-              <span className={`text-sm mt-2 ${currentStep >= 2 ? 'text-indigo-600 font-medium' : 'text-gray-600'}`}>Giá</span>
-            </div>
-            <div className={`flex-1 h-1 ${currentStep > 2 ? 'bg-indigo-600' : 'bg-gray-300'}`}></div>
-            <div className="flex flex-col items-center">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${currentStep >= 3 ? 'bg-indigo-600 text-white' : 'bg-gray-300 text-gray-600'}`}>
-                <BookOpen className="h-5 w-5" />
-              </div>
-              <span className={`text-sm mt-2 ${currentStep >= 3 ? 'text-indigo-600 font-medium' : 'text-gray-600'}`}>Nội dung</span>
-            </div>
-            <div className={`flex-1 h-1 ${currentStep > 3 ? 'bg-indigo-600' : 'bg-gray-300'}`}></div>
-            <div className="flex flex-col items-center">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${currentStep >= 4 ? 'bg-indigo-600 text-white' : 'bg-gray-300 text-gray-600'}`}>
-                <FileText className="h-5 w-5" />
-              </div>
-              <span className={`text-sm mt-2 ${currentStep >= 4 ? 'text-indigo-600 font-medium' : 'text-gray-600'}`}>Hoàn tất</span>
-            </div>
-          </div>
+                    {/* Progress Steps */}
+                    <div className="flex items-center justify-center mb-12">
+                        <div className="flex items-center space-x-8">
+                            <div className="flex items-center">
+                                <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${
+                                    currentStep >= 1 ? 'bg-blue-600 text-white shadow-lg' : 'bg-gray-200 text-gray-600'
+                                }`}>
+                                    <Info className="h-6 w-6" />
+                                </div>
+                                <span className={`ml-3 font-medium ${currentStep >= 1 ? 'text-blue-600' : 'text-gray-500'}`}>
+                  Thông tin
+                </span>
+                            </div>
 
-          {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-              <strong className="font-bold">Lỗi!</strong>
-              <span className="block sm:inline ml-2">{error}</span>
-            </div>
-          )}
-          {successMessage && (
-            <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
-              <strong className="font-bold">Thành công!</strong>
-              <span className="block sm:inline ml-2">{successMessage}</span>
-            </div>
-          )}
+                            <div className={`w-16 h-1 transition-all duration-300 ${
+                                currentStep > 1 ? 'bg-blue-600' : 'bg-gray-300'
+                            }`}></div>
 
-          <form onSubmit={handleSubmit}>
-            {renderStepContent()}
+                            <div className="flex items-center">
+                                <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${
+                                    currentStep >= 2 ? 'bg-blue-600 text-white shadow-lg' : 'bg-gray-200 text-gray-600'
+                                }`}>
+                                    <CheckCircle className="h-6 w-6" />
+                                </div>
+                                <span className={`ml-3 font-medium ${currentStep >= 2 ? 'text-blue-600' : 'text-gray-500'}`}>
+                  Xác nhận
+                </span>
+                            </div>
+                        </div>
+                    </div>
 
-            {/* Navigation Buttons */}
-            <div className="flex justify-between mt-8">
-              {currentStep > 1 && (
-                <button
-                  type="button"
-                  onClick={prevStep}
-                  className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                  disabled={isLoading}
-                >
-                  Quay lại
-                </button>
-              )}
-              {currentStep < 4 && (
-                <button
-                  type="button"
-                  onClick={nextStep}
-                  className="ml-auto inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                  disabled={isLoading}
-                >
-                  Tiếp theo
-                </button>
-              )}
-              {currentStep === 4 && (
-                <button
-                  type="submit"
-                  className="ml-auto inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                  disabled={isLoading}
-                >
-                  {isLoading ? 'Đang tạo...' : 'Tạo khóa học'}
-                </button>
-              )}
+                    {/* Main Form Card */}
+                    <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+                        <div className="p-8">
+                            {/* Error Message */}
+                            {error && (
+                                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center">
+                                    <X className="h-5 w-5 text-red-500 mr-3" />
+                                    <span className="text-red-700 font-medium">{error}</span>
+                                </div>
+                            )}
+                            {/* Success Message */}
+                            {successMessage && (
+                                <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center">
+                                    <Check className="h-5 w-5 text-green-500 mr-3" />
+                                    <span className="text-green-700 font-medium">{successMessage}</span>
+                                </div>
+                            )}
+
+                            <form onSubmit={handleSubmit}>
+                                {renderStepContent()}
+
+                                {/* Navigation Buttons */}
+                                <div className="flex justify-between mt-10 pt-6 border-t border-gray-200">
+                                    {currentStep > 1 && (
+                                        <button
+                                            type="button"
+                                            onClick={prevStep}
+                                            className="inline-flex items-center px-6 py-3 border border-gray-300 text-base font-semibold rounded-lg shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
+                                            disabled={isLoading}
+                                        >
+                                            <ArrowLeft className="h-5 w-5 mr-2" />
+                                            Quay lại
+                                        </button>
+                                    )}
+                                    {currentStep < 2 && (
+                                        <button
+                                            type="button"
+                                            onClick={nextStep}
+                                            className="ml-auto inline-flex items-center px-6 py-3 border border-transparent text-base font-semibold rounded-lg shadow-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
+                                            disabled={isLoading}
+                                        >
+                                            Tiếp theo
+                                            <ArrowRight className="h-5 w-5 ml-2" />
+                                        </button>
+                                    )}
+                                    {currentStep === 2 && (
+                                        <button
+                                            type="submit"
+                                            className="ml-auto inline-flex items-center px-6 py-3 border border-transparent text-base font-semibold rounded-lg shadow-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200"
+                                            disabled={isLoading}
+                                        >
+                                            {isLoading ? (
+                                                <>
+                                                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                    </svg>
+                                                    Đang tạo...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Check className="h-5 w-5 mr-2" />
+                                                    Tạo khóa học
+                                                </>
+                                            )}
+                                        </button>
+                                    )}
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
             </div>
-          </form>
+            <Footer />
         </div>
-      </div>
-      <Footer />
-    </div>
-  );
+    );
 };
 
 export default AddCoursePage;

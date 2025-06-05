@@ -1,124 +1,99 @@
-import { CourseSummaryResponse, CourseResponse, CourseCreationRequest, CourseUpdateRequest, CourseStatusUpdateRequest, CourseFilterRequest } from '../types/courseTypes.ts'; // Tạo các interface/type này nếu chưa có
-import { API_BASE_URL } from '../config'; // Nên có file config.ts chứa URL backend
+import {
+    CourseCreationRequest,
+    CourseResponse,
+    CourseSummaryResponse,
+    CourseUpdateRequest
+} from '../types/courseTypes.ts'; // Import các interface/type cần thiết
+import {ApiResponse} from '../types/commonTypes.ts'; // Import ApiResponse type
+import {API_BASE_URL} from '../config';
 
-// Hàm helper để xử lý phản hồi API
+// Hàm helper để xử lý phản hồi API chung
 async function handleApiResponse<T>(response: Response): Promise<T> {
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.message || 'Something went wrong');
-  }
-  return response.json();
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Something went wrong');
+    }
+    return response.json();
 }
 
-// Hàm helper để thêm Authorization header (tùy chọn)
+// Hàm helper để thêm Authorization header
 function getAuthHeaders() {
-  const defaultHeaders: HeadersInit = {
-    'Content-Type': 'application/json',
-  };
+    const defaultHeaders: HeadersInit = {
+        'Content-Type': 'application/json',
+    };
 
-  const authData = localStorage.getItem('auth');
-  if (authData) {
-    try {
-      const { token } = JSON.parse(authData);
-      if (token) {
-        return {
-          ...defaultHeaders,
-          'Authorization': `Bearer ${token}`,
-        };
-      }
-    } catch (e) {
-      console.error("Error parsing auth data from localStorage", e);
-      localStorage.removeItem('auth');
+    const authData = localStorage.getItem('auth');
+    if (authData) {
+        try {
+            const {token} = JSON.parse(authData);
+            if (token) {
+                return {
+                    ...defaultHeaders,
+                    'Authorization': `Bearer ${token}`,
+                };
+            }
+        } catch (e) {
+            console.error("Error parsing auth data from localStorage", e);
+            localStorage.removeItem('auth');
+        }
     }
-  }
-  return defaultHeaders;
+    return defaultHeaders;
 }
 
 export const courseApi = {
-  // Lấy tất cả khóa học
-  getAllCourses: async (): Promise<CourseSummaryResponse[]> => {
-    const response = await fetch(`${API_BASE_URL}/courses`);
-    return handleApiResponse<CourseSummaryResponse[]>(response);
-  },
+    // Lấy tất cả khóa học (thường dành cho Admin hoặc trang duyệt công khai)
+    getAllCourses: async (): Promise<CourseSummaryResponse[]> => {
+        const response = await fetch(`${API_BASE_URL}/courses`);
+        const apiResponse = await handleApiResponse<ApiResponse<CourseSummaryResponse[]>>(response);
+        return apiResponse.data || [];
+    },
 
-  // Lấy chi tiết khóa học theo ID
-  getCourseById: async (id: number): Promise<CourseResponse> => {
-    const response = await fetch(`${API_BASE_URL}/courses/${id}`);
-    return handleApiResponse<CourseResponse>(response);
-  },
+    // Tạo khóa học mới
+    createCourse: async (courseData: CourseCreationRequest): Promise<CourseResponse> => {
+        const response = await fetch(`${API_BASE_URL}/courses`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify(courseData),
+        });
+        const apiResponse = await handleApiResponse<ApiResponse<CourseResponse>>(response);
+        return apiResponse.data;
+    },
 
-  // Tạo khóa học mới (yêu cầu xác thực và quyền)
-  createCourse: async (courseData: CourseCreationRequest): Promise<CourseResponse> => {
-    const response = await fetch(`${API_BASE_URL}/courses`, {
-      method: 'POST',
-      headers: getAuthHeaders(), // Thêm auth header
-      body: JSON.stringify(courseData),
-    });
-    return handleApiResponse<CourseResponse>(response);
-  },
+    // Cập nhật khóa học
+    updateCourse: async (id: number, courseData: CourseUpdateRequest): Promise<CourseResponse> => {
+        const response = await fetch(`${API_BASE_URL}/courses/${id}`, {
+            method: 'PUT',
+            headers: getAuthHeaders(),
+            body: JSON.stringify(courseData),
+        });
+        const apiResponse = await handleApiResponse<ApiResponse<CourseResponse>>(response);
+        return apiResponse.data;
+    },
 
-  // Cập nhật khóa học (yêu cầu xác thực và quyền)
-  updateCourse: async (id: number, courseData: CourseUpdateRequest): Promise<CourseResponse> => {
-    const response = await fetch(`${API_BASE_URL}/courses/${id}`, {
-      method: 'PUT',
-      headers: getAuthHeaders(),
-      body: JSON.stringify(courseData),
-    });
-    return handleApiResponse<CourseResponse>(response);
-  },
+    // Lấy chi tiết khóa học theo ID
+    getCourseById: async (id: number): Promise<CourseResponse> => {
+        const response = await fetch(`${API_BASE_URL}/courses/${id}`, {
+            headers: getAuthHeaders(),
+        });
+        const apiResponse = await handleApiResponse<ApiResponse<CourseResponse>>(response);
+        return apiResponse.data;
+    },
 
-  // Cập nhật trạng thái khóa học (yêu cầu xác thực và quyền)
-  updateCourseStatus: async (id: number, statusData: CourseStatusUpdateRequest): Promise<void> => {
-    const response = await fetch(`${API_BASE_URL}/courses/${id}/status`, {
-      method: 'PATCH',
-      headers: getAuthHeaders(),
-      body: JSON.stringify(statusData),
-    });
-    await handleApiResponse<void>(response);
-  },
+    // Lấy danh sách khóa học của người bán hiện tại
+    getMyCourses: async (): Promise<CourseSummaryResponse[]> => {
+        const response = await fetch(`${API_BASE_URL}/courses/my-courses`, {
+            headers: getAuthHeaders(),
+        });
+        const apiResponse = await handleApiResponse<ApiResponse<CourseSummaryResponse[]>>(response);
+        return apiResponse.data || [];
+    },
 
-  // Xóa khóa học (yêu cầu xác thực và quyền)
-  deleteCourse: async (id: number): Promise<void> => {
-    const response = await fetch(`${API_BASE_URL}/courses/${id}`, {
-      method: 'DELETE',
-      headers: getAuthHeaders(),
-    });
-    await handleApiResponse<void>(response);
-  },
-
-  // Lọc khóa học
-  filterCourses: async (filter: CourseFilterRequest): Promise<CourseSummaryResponse[]> => {
-    const response = await fetch(`${API_BASE_URL}/courses/filter`, {
-      method: 'POST',
-      headers: getAuthHeaders(),
-      body: JSON.stringify(filter),
-    });
-    return handleApiResponse<CourseSummaryResponse[]>(response);
-  },
-
-  // Lấy khóa học của người bán hiện tại
-  getMyCourses: async (): Promise<CourseSummaryResponse[]> => {
-    const response = await fetch(`${API_BASE_URL}/courses/my-courses`, {
-      headers: getAuthHeaders(),
-    });
-    return handleApiResponse<CourseSummaryResponse[]>(response);
-  },
-
-  // Phê duyệt khóa học (chỉ ADMIN)
-  approveCourse: async (id: number): Promise<void> => {
-    const response = await fetch(`${API_BASE_URL}/courses/${id}/approve`, {
-      method: 'PATCH',
-      headers: getAuthHeaders(),
-    });
-    await handleApiResponse<void>(response);
-  },
-
-  // Từ chối khóa học (chỉ ADMIN)
-  rejectCourse: async (id: number): Promise<void> => {
-    const response = await fetch(`${API_BASE_URL}/courses/${id}/reject`, {
-      method: 'PATCH',
-      headers: getAuthHeaders(),
-    });
-    await handleApiResponse<void>(response);
-  },
+    // Xóa khóa học
+    deleteCourse: async (id: number): Promise<void> => {
+        const response = await fetch(`${API_BASE_URL}/courses/${id}`, {
+            method: 'DELETE',
+            headers: getAuthHeaders(),
+        });
+        await handleApiResponse<ApiResponse<void>>(response);
+    },
 };

@@ -1,4 +1,6 @@
-import { SellerResponse } from './userTypes';
+import {SellerResponse} from './userTypes';
+import {LessonSummaryResponse} from "./lessonTypes.ts";
+import {CategoryResponse} from "./categoryTypes.ts";
 
 export enum CourseStatus {
     DRAFT = 'DRAFT',
@@ -18,23 +20,24 @@ export interface CourseCreationRequest {
     categoryId: number;
     levelId: number;
     sellerId: number;
+    thumbnailUrl: string;
 }
 
-export interface CourseUpdateRequest{
+export interface CourseUpdateRequest {
     title: string;
     description: string;
     price: number;
     discountPrice: number | null;
     categoryId: number;
     levelId: number;
-    sellerId: number;
+    thumbnailUrl: string;
 }
 
 export interface CourseStatusUpdateRequest {
     status: CourseStatus;
 }
 
-export interface CourseFilterRequest{
+export interface CourseFilterRequest {
     keyword: string;
     categoryId: number;
     levelId: number;
@@ -64,15 +67,10 @@ export interface CourseResponse {
     description: string;
     price: number;
     discountPrice: number | null;
-    categoryName: string;
-    levelName: string;
+    category: CategoryResponse;
+    level: SellerResponse;
     seller: SellerResponse;
     status: string;
     lessons: LessonSummaryResponse[];
-}
-
-export interface LessonSummaryResponse {
-    id: number;
-    title: string;
-    order: number;
+    thumbnailUrl: string;
 }

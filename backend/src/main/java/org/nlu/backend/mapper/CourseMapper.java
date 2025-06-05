@@ -13,7 +13,7 @@ import org.nlu.backend.entity.Course;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring", uses = {UserMapper.class, LessonMapper.class})
+@Mapper(componentModel = "spring", uses = {UserMapper.class, LessonMapper.class, CategoryMapper.class, LevelMapper.class})
 public interface CourseMapper {
 
     // CREATE
@@ -30,8 +30,8 @@ public interface CourseMapper {
     void updateCourseStatusFromRequest(CourseStatusUpdateRequest request, @MappingTarget Course course);
 
     // ENTITY → RESPONSE
-    @Mapping(source = "category.name", target = "categoryName")
-    @Mapping(source = "level.name", target = "levelName")
+    @Mapping(source = "category", target = "category")
+    @Mapping(source = "level", target = "level")
     @Mapping(source = "seller", target = "seller")
     @Mapping(source = "status", target = "status")
     @Mapping(source = "lessons", target = "lessons")
@@ -40,7 +40,6 @@ public interface CourseMapper {
     // ENTITY → SUMMARY RESPONSE
     @Mapping(source = "seller.fullName", target = "sellerName")
     @Mapping(source = "category.name", target = "categoryName")
-    @Mapping(target = "thumbnailUrl", constant = "https://picsum.photos/1080/1920")
     CourseSummaryResponse toCourseSummaryResponse(Course course);
 
     // ENTITY → ADMIN RESPONSE
@@ -51,6 +50,7 @@ public interface CourseMapper {
 
     // Optional: list mapping
     List<CourseSummaryResponse> toCourseSummaryResponses(List<Course> courses);
+
     List<CourseResponse> toCourseResponses(List<Course> courses);
 }
 

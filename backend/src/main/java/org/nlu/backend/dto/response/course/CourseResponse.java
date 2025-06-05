@@ -2,7 +2,9 @@ package org.nlu.backend.dto.response.course;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import org.nlu.backend.dto.response.category.CategoryResponse;
 import org.nlu.backend.dto.response.lesson.LessonSummaryResponse;
+import org.nlu.backend.dto.response.level.LevelResponse;
 import org.nlu.backend.dto.response.seller.SellerResponse;
 
 import java.math.BigDecimal;
@@ -21,8 +23,9 @@ public class CourseResponse {
     private String description;
     private BigDecimal price;
     private BigDecimal discountPrice;
-    private String categoryName;
-    private String levelName;
+    private String thumbnailUrl;
+    private CategoryResponse category;
+    private LevelResponse level;
     private SellerResponse seller;
     private String status;
     private List<LessonSummaryResponse> lessons;

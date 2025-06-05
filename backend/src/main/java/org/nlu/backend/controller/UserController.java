@@ -17,22 +17,23 @@ import java.util.List;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class UserController {
-
     UserService userService;
 
-    @PostMapping
-    ResponseEntity<ApiResponse<UserResponse>> createUser(@RequestBody UserCreationRequest request) {
-        return ResponseEntity.ok()
-                .body(ApiResponse.<UserResponse>builder()
-                        .data(userService.createUser(request))
-                        .build());
-    }
-
+    //-------------- GET MAPPING --------------
     @GetMapping
     ResponseEntity<ApiResponse<List<UserResponse>>> getUsers() {
         return ResponseEntity.ok()
                 .body(ApiResponse.<List<UserResponse>>builder()
                         .data(userService.getAllUsers())
+                        .build());
+    }
+
+    //-------------- POST MAPPING --------------
+    @PostMapping
+    ResponseEntity<ApiResponse<UserResponse>> createUser(@RequestBody UserCreationRequest request) {
+        return ResponseEntity.ok()
+                .body(ApiResponse.<UserResponse>builder()
+                        .data(userService.createUser(request))
                         .build());
     }
 

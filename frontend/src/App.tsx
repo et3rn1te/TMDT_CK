@@ -22,7 +22,8 @@ import Forbidden from './pages/error/Forbidden.tsx';
 import NotFound from './pages/error/NotFound.tsx';
 
 import { AuthProvider } from './context/AuthContext'; 
-import ProtectedRoute from './routes/ProtectedRoute'; 
+import ProtectedRoute from './routes/ProtectedRoute';
+import EditCourse from "./pages/admin/EditCourse.tsx";
 
 function App() {
   return (
@@ -56,6 +57,15 @@ function App() {
                 <AddCourse />
               </ProtectedRoute>
             }
+          />
+
+          <Route
+              path="/edit-course"
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN', 'SELLER']}>
+                  <EditCourse />
+                </ProtectedRoute>
+              }
           />
 
           <Route
