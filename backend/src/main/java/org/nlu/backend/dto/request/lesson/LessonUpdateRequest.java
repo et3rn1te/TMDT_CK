@@ -14,4 +14,5 @@ public class LessonUpdateRequest {
     private String description;
     private String videoUrl;
     private String fileUrl;
+    private boolean isPreview;
 }

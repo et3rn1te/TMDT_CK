@@ -60,7 +60,7 @@ function App() {
           />
 
           <Route
-              path="/edit-course"
+              path="/manage-courses/edit/:courseId"
               element={
                 <ProtectedRoute allowedRoles={['ADMIN', 'SELLER']}>
                   <EditCourse />

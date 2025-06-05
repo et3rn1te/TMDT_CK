@@ -15,4 +15,5 @@ public class LessonCreationRequest {
     private String videoUrl;
     private String fileUrl;
     private Long courseId;  // course's id the lesson belongs to
+    private boolean isPreview;
 }

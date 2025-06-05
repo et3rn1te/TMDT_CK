@@ -21,6 +21,7 @@ public interface CourseMapper {
     @Mapping(source = "levelId", target = "level.id")
     @Mapping(source = "sellerId", target = "seller.id")
     @Mapping(target = "status", constant = "DRAFT")
+    @Mapping(source = "thumbnailUrl", target = "thumbnailUrl")
     Course toCourse(CourseCreationRequest request);
 
     // UPDATE
@@ -35,6 +36,7 @@ public interface CourseMapper {
     @Mapping(source = "seller", target = "seller")
     @Mapping(source = "status", target = "status")
     @Mapping(source = "lessons", target = "lessons")
+    @Mapping(source = "thumbnailUrl", target = "thumbnailUrl")
     CourseResponse toCourseResponse(Course course);
 
     // ENTITY → SUMMARY RESPONSE

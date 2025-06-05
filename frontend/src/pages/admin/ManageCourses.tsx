@@ -1,18 +1,18 @@
 import React, {useState, useEffect} from 'react';
 import {Link} from 'react-router-dom';
-import {Edit, Trash2, PlusCircle, BookOpen} from 'lucide-react'; // Icons for actions
-import {courseApi} from '../../api/courses'; // Import courseApi
-import {CourseSummaryResponse} from '../../types/courseTypes'; // Import CourseSummaryResponse type
-import {useAuth} from '../../context/AuthContext'; // Import useAuth to get user role
-import Navbar from '../../components/Navbar'; // Import Navbar
-import Footer from '../../components/Footer'; // Import Footer
+import {Edit, Trash2, PlusCircle, BookOpen} from 'lucide-react';
+import {courseApi} from '../../api/courses';
+import {CourseSummaryResponse} from '../../types/courseTypes';
+import {useAuth} from '../../context/AuthContext';
+import Navbar from '../../components/Navbar';
+import Footer from '../../components/Footer';
 
 const ManageCourse = () => {
     const [courses, setCourses] = useState<CourseSummaryResponse[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [isDeleting, setIsDeleting] = useState(false); // State for delete operation
-    const {userRole, isAuthenticated, loading: authLoading} = useAuth(); // Get userRole and authLoading
+    const [isDeleting, setIsDeleting] = useState(false);
+    const {userRole, isAuthenticated, loading: authLoading} = useAuth();
 
     const fetchCoursesForManagement = async () => {
         if (authLoading) {

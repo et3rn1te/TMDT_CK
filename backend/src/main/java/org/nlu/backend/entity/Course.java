@@ -51,6 +51,8 @@ public class Course extends BaseEntity {
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
     List<Lesson> lessons;
 
+    String thumbnailUrl;
+
     public enum CourseStatus {
         DRAFT, PUBLISHED, ARCHIVED, PENDING_APPROVAL, REJECTED
     }

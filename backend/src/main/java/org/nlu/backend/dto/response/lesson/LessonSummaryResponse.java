@@ -14,4 +14,5 @@ public class LessonSummaryResponse {
     private Long id;
     private String title;
     private Integer order;
+    private boolean isPreview;
 }

@@ -19,4 +19,5 @@ public class LessonResponse {
     private String fileUrl;
     private Long courseId;
     private String courseTitle;  // optional
+    private boolean isPreview;
 }

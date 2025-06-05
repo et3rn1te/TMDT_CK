@@ -57,7 +57,7 @@ export interface CourseSummaryResponse {
     discountPrice: number | null;
     thumbnailUrl: string;
     sellerName: string;
-    categoryName: string;
+    categoryId: number;
     status: string;
 }
 
