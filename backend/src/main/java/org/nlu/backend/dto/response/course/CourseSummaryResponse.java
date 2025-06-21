@@ -18,8 +18,8 @@ public class CourseSummaryResponse {
     private String title;
     private BigDecimal price;
     private BigDecimal discountPrice;
-    private CategoryResponse category;
-    private String thumbnailUrl; // Keep empty for now
+    private String thumbnailUrl;
+    private String levelName;
     private String sellerName;
     private String categoryName;
     private String status;

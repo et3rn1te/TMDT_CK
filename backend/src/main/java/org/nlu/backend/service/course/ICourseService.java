@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.nlu.backend.dto.request.course.*;
 import org.nlu.backend.dto.response.course.*;
-import org.springframework.security.access.prepost.PreAuthorize;
 
 public interface ICourseService {
     List<CourseSummaryResponse> getAllCourses();
@@ -26,4 +25,6 @@ public interface ICourseService {
     void approveCourse(Long id);
 
     void rejectCourse(Long id);
+
+    List<CourseSummaryResponse> searchCourses(String keyword);
 }

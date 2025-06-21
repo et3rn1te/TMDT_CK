@@ -135,4 +135,18 @@ export const courseApi = {
         });
         await handleApiResponse<void>(response);
     },
+
+    // Tìm kiếm khóa học theo từ khóa
+    searchCourses: async (keyword: string = ''): Promise<CourseSummaryResponse[]> => {
+        const params = new URLSearchParams();
+        if (keyword) {
+            params.append('keyword', keyword);
+        }
+        const queryString = params.toString();
+        const url = `${API_BASE_URL}/courses/search${queryString ? `?${queryString}` : ''}`;
+
+        const response = await fetch(url);
+        const apiResponse = await handleApiResponse<ApiResponse<CourseSummaryResponse[]>>(response);
+        return apiResponse.data;
+    },
 };

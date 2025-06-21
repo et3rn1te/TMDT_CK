@@ -1,4 +1,4 @@
-package org.nlu.backend.service.course.enrollment;
+package org.nlu.backend.service.enrollment;
 
 import org.nlu.backend.dto.request.enrollment.CourseEnrollmentRequest;
 

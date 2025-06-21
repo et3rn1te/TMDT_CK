@@ -39,6 +39,13 @@ public class CourseController {
                 .build());
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<List<CourseSummaryResponse>>> searchCourses(@RequestParam(required = false) String keyword) {
+        return ResponseEntity.ok(ApiResponse.<List<CourseSummaryResponse>>builder()
+                .data(courseService.searchCourses(keyword))
+                .build());
+    }
+
     //-------------- POST MAPPING --------------
     @PostMapping
     public ResponseEntity<ApiResponse<CourseResponse>> createCourse(@RequestBody CourseCreationRequest request) {
