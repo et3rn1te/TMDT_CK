@@ -1,5 +1,6 @@
 package org.nlu.backend.service.course;
 
+import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Predicate;
 import lombok.*;
 import org.nlu.backend.dto.request.course.*;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -127,15 +129,93 @@ public class CourseService implements ICourseService {
 
     @Override
     public List<CourseSummaryResponse> filterCourses(CourseFilterRequest request) {
-        Specification<Course> spec = buildCourseSpecification(request);
+        Specification<Course> spec = (root, query, cb) -> {
+            Predicate predicate = cb.conjunction(); // Start with a true predicate
+
+            if (request.getKeyword() != null && !request.getKeyword().isEmpty()) {
+                String keyword = "%" + request.getKeyword().toLowerCase() + "%";
+                predicate = cb.and(predicate, cb.or(
+                        cb.like(cb.lower(root.get("title")), keyword),
+                        cb.like(cb.lower(root.get("description")), keyword)
+                ));
+            }
+            if (request.getCategoryId() != null) {
+                predicate = cb.and(predicate, cb.equal(root.get("category").get("id"), request.getCategoryId()));
+            }
+            if (request.getLevelIds() != null && !request.getLevelIds().isEmpty()) {
+                predicate = cb.and(predicate, root.get("level").get("id").in(request.getLevelIds()));
+            }
+            if (request.getStatus() != null) {
+                predicate = cb.and(predicate, cb.equal(root.get("status"), Course.CourseStatus.valueOf(request.getStatus())));
+            }
+
+            // --- Cập nhật logic lọc khoảng giá theo giá cuối cùng (discountPrice hoặc price) ---
+            if (request.getMinPrice() != null) {
+                Expression<BigDecimal> pricePath = root.get("price");
+                Expression<BigDecimal> discountPricePath = root.get("discountPrice");
+                BigDecimal minPriceValue = request.getMinPrice();
+
+                Predicate discountPriceGreaterThanOrEqualToMin = cb.and(
+                        cb.isNotNull(discountPricePath),
+                        cb.lessThan(discountPricePath, pricePath), // discountPrice < price
+                        cb.greaterThanOrEqualTo(discountPricePath, minPriceValue)
+                );
+
+                Predicate originalPriceGreaterThanOrEqualToMin = cb.and(
+                        cb.or(
+                                cb.isNull(discountPricePath), // No discount price
+                                cb.greaterThanOrEqualTo(discountPricePath, pricePath) // Discount price not less than original price
+                        ),
+                        cb.greaterThanOrEqualTo(pricePath, minPriceValue)
+                );
+                predicate = cb.and(predicate, cb.or(discountPriceGreaterThanOrEqualToMin, originalPriceGreaterThanOrEqualToMin));
+            }
+
+            if (request.getMaxPrice() != null) {
+                Expression<BigDecimal> pricePath = root.get("price");
+                Expression<BigDecimal> discountPricePath = root.get("discountPrice");
+                BigDecimal maxPriceValue = request.getMaxPrice();
+
+                Predicate discountPriceLessThanOrEqualToMax = cb.and(
+                        cb.isNotNull(discountPricePath),
+                        cb.lessThan(discountPricePath, pricePath), // discountPrice < price
+                        cb.lessThanOrEqualTo(discountPricePath, maxPriceValue)
+                );
+
+                Predicate originalPriceLessThanOrEqualToMax = cb.and(
+                        cb.or(
+                                cb.isNull(discountPricePath), // No discount price
+                                cb.greaterThanOrEqualTo(discountPricePath, pricePath) // Discount price not less than original price
+                        ),
+                        cb.lessThanOrEqualTo(pricePath, maxPriceValue)
+                );
+                predicate = cb.and(predicate, cb.or(discountPriceLessThanOrEqualToMax, originalPriceLessThanOrEqualToMax));
+            }
+            // --- Kết thúc cập nhật logic lọc khoảng giá ---
+
+            if (request.getSellerId() != null) {
+                predicate = cb.and(predicate, cb.equal(root.get("seller").get("id"), request.getSellerId()));
+            }
+
+            // Logic sắp xếp (đã có từ trước và vẫn dùng 'price' hoặc 'discountPrice' nếu được gửi từ frontend)
+            if (request.getSortBy() != null && request.getSortDirection() != null) {
+                if (request.getSortDirection().equalsIgnoreCase("asc")) {
+                    query.orderBy(cb.asc(root.get(request.getSortBy())));
+                } else if (request.getSortDirection().equalsIgnoreCase("desc")) {
+                    query.orderBy(cb.desc(root.get(request.getSortBy())));
+                }
+            }
+
+            query.where(predicate);
+            return query.getRestriction();
+        };
         List<Course> courses = courseRepository.findAll(spec);
         return courseMapper.toCourseSummaryResponses(courses);
     }
 
-    // --- Các phương thức mới theo yêu cầu ưu tiên ---
-
     @Override
-    @PreAuthorize("hasAnyRole('ADMIN', 'SELLER')") // Đã có @PreAuthorize ở Controller, nhưng giữ ở đây để bảo vệ service
+    @PreAuthorize("hasAnyRole('ADMIN', 'SELLER')")
+    // Đã có @PreAuthorize ở Controller, nhưng giữ ở đây để bảo vệ service
     public List<CourseSummaryResponse> getCoursesByCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUserEmail = authentication.getName(); // Email của người dùng hiện tại
@@ -175,6 +255,22 @@ public class CourseService implements ICourseService {
         courseRepository.save(course);
     }
 
+    @Override
+    public List<CourseSummaryResponse> searchCourses(String keyword) {
+        Specification<Course> spec = (root, query, cb) -> {
+            if (keyword == null || keyword.isEmpty()) {
+                return cb.conjunction(); // Return an empty predicate if no keyword
+            }
+            String likeKeyword = "%" + keyword.toLowerCase() + "%";
+            return cb.or(
+                    cb.like(cb.lower(root.get("title")), likeKeyword),
+                    cb.like(cb.lower(root.get("description")), likeKeyword)
+            );
+        };
+        List<Course> courses = courseRepository.findAll(spec);
+        return courseMapper.toCourseSummaryResponses(courses);
+    }
+
     // Hàm này sẽ xây dựng điều kiện filter từ request
     private Specification<Course> buildCourseSpecification(CourseFilterRequest request) {
         return (root, query, cb) -> {
@@ -190,8 +286,8 @@ public class CourseService implements ICourseService {
             if (request.getCategoryId() != null) {
                 predicate = cb.and(predicate, cb.equal(root.get("category").get("id"), request.getCategoryId()));
             }
-            if (request.getLevelId() != null) {
-                predicate = cb.and(predicate, cb.equal(root.get("level").get("id"), request.getLevelId()));
+            if (request.getLevelIds() != null && !request.getLevelIds().isEmpty()) {
+                predicate = cb.and(predicate, root.get("level").get("id").in(request.getLevelIds()));
             }
             if (request.getStatus() != null) {
                 predicate = cb.and(predicate, cb.equal(root.get("status"), request.getStatus()));

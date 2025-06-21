@@ -4,6 +4,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Data
 @Builder
@@ -13,7 +14,7 @@ import java.math.BigDecimal;
 public class CourseFilterRequest {
     String keyword; // Search by title or description
     Long categoryId; // Filter by category
-    Long levelId; // Filter by level (Beginner, Intermediate, Advanced)
+    List<Long> levelIds; // Filter by level (Beginner, Intermediate, Advanced)
     String status; // Filter by status: DRAFT, PUBLISHED, ARCHIVED, etc.
 
     // Filter by price range

@@ -147,7 +147,7 @@ const AddCoursePage: React.FC = () => {
                                     value={formData.title}
                                     onChange={handleInputChange}
                                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-500"
-                                    placeholder="Ví dụ: React.js từ cơ bản đến nâng cao"
+                                    placeholder="Ví dụ: Luyện thi chứng chỉ IELTS 8.0+"
                                     required
                                 />
                             </div>

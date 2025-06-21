@@ -41,7 +41,7 @@ export interface CourseStatusUpdateRequest {
 export interface CourseFilterRequest {
     keyword: string;
     categoryId: number;
-    levelId: number;
+    levelIds: number[];
     minPrice: number;
     maxPrice: number;
     sellerId: number;
@@ -57,8 +57,9 @@ export interface CourseSummaryResponse {
     price: number;
     discountPrice: number | null;
     thumbnailUrl: string;
+    levelName: string;
     sellerName: string;
-    category: CategoryResponse;
+    categoryName: string;
     status: string;
 }
 
