@@ -1,18 +1,33 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Info, CheckCircle, BookOpen, Tag, DollarSign, Image, ArrowRight, ArrowLeft, Check, X } from 'lucide-react'; // Added icons for consistent UI
-import { courseApi } from '../../api/courses';
-import { categoryApi } from '../../api/categories';
-import { levelApi } from '../../api/levels';
-import { CourseResponse, CourseUpdateRequest } from '../../types/courseTypes';
-
+import React, {useState, useEffect} from 'react';
+import {useParams, useNavigate} from 'react-router-dom';
+import {
+    Info,
+    CheckCircle,
+    BookOpen,
+    Tag,
+    DollarSign,
+    Image,
+    ArrowRight,
+    ArrowLeft,
+    Check,
+    X,
+    Upload,
+    RotateCcw
+} from 'lucide-react'; // Added icons for consistent UI
+import {courseApi} from '../../api/courses';
+import {categoryApi} from '../../api/categories';
+import {levelApi} from '../../api/levels';
+import {CourseResponse, CourseUpdateRequest, CourseStatusUpdateRequest} from '../../types/courseTypes';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import {CategoryResponse} from "../../types/categoryTypes.ts";
 import {LevelResponse} from "../../types/levelTypes.ts";
+import BackButton from "../../components/common/BackButton.tsx";
+import {useAuth} from '../../context/AuthContext';
 
 const EditCoursePage: React.FC = () => {
-    const { courseId } = useParams<{ courseId: string }>();
+    const {userRole} = useAuth();
+    const {courseId} = useParams<{ courseId: string }>();
     const navigate = useNavigate();
 
     const [currentStep, setCurrentStep] = useState(1); // Added for multi-step form
@@ -27,12 +42,24 @@ const EditCoursePage: React.FC = () => {
         thumbnailUrl: '',
     });
     const [categories, setCategories] = useState<CategoryResponse[]>([]);
+    const [isUpdatingCourseStatus, setIsUpdatingCourseStatus] = useState(false);
     const [levels, setLevels] = useState<LevelResponse[]>([]);
 
     const [isLoading, setIsLoading] = useState(true); // For initial data fetch (course + dropdowns)
     const [isUpdating, setIsUpdating] = useState(false); // For form submission
     const [error, setError] = useState<string | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+    const getLocalizedCourseStatus = (status: string) => {
+        switch (status) {
+            case 'DRAFT': return 'Bản nháp';
+            case 'PENDING_APPROVAL': return 'Chờ duyệt';
+            case 'PUBLISHED': return 'Đã xuất bản';
+            case 'REJECTED': return 'Đã từ chối';
+            case 'ARCHIVED': return 'Đã lưu trữ';
+            default: return status;
+        }
+    };
 
     // Effect to fetch initial course data and dropdown options
     useEffect(() => {
@@ -79,7 +106,7 @@ const EditCoursePage: React.FC = () => {
 
     // Handle input changes (same as AddCoursePage)
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
+        const {name, value} = e.target;
         setFormData((prevData) => ({
             ...prevData,
             [name]: (name === 'price' || name === 'discountPrice' || name === 'categoryId' || name === 'levelId')
@@ -140,6 +167,32 @@ const EditCoursePage: React.FC = () => {
         }
     };
 
+    const handleUpdateCourseStatus = async (newStatus: string) => {
+        if (!courseId) return; // Đảm bảo có courseId
+
+        const confirmMessage = `Bạn có chắc chắn muốn chuyển trạng thái khóa học sang "${newStatus}" không?`;
+        if (window.confirm(confirmMessage)) {
+            setIsUpdatingCourseStatus(true);
+            try {
+                await courseApi.updateCourseStatus(parseInt(courseId), { status: newStatus });
+                alert(`Trạng thái khóa học đã được cập nhật thành "${newStatus}"!`);
+                // Tải lại chi tiết khóa học để cập nhật UI ngay lập tức
+                const updatedCourse = await courseApi.getCourseById(parseInt(courseId));
+                setCourseDetails(updatedCourse);
+                setFormData({
+                    ...updatedCourse,
+                    categoryId: updatedCourse.category.id,
+                    levelId: updatedCourse.level.id,
+                });
+            } catch (err: any) {
+                console.error("Lỗi khi cập nhật trạng thái khóa học:", err);
+                alert(err.message || "Không thể cập nhật trạng thái khóa học.");
+            } finally {
+                setIsUpdatingCourseStatus(false);
+            }
+        }
+    };
+
     // Render content based on the current step
     const renderStepContent = () => {
         switch (currentStep) {
@@ -147,8 +200,9 @@ const EditCoursePage: React.FC = () => {
                 return (
                     <div className="space-y-8">
                         <div className="text-center border-b pb-6">
-                            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <BookOpen className="h-8 w-8 text-blue-600" />
+                            <div
+                                className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <BookOpen className="h-8 w-8 text-blue-600"/>
                             </div>
                             <h2 className="text-2xl font-bold text-gray-900 mb-2">Thông tin khóa học</h2>
                             <p className="text-gray-600">Chỉnh sửa thông tin cơ bản về khóa học của bạn</p>
@@ -156,7 +210,8 @@ const EditCoursePage: React.FC = () => {
 
                         <div className="grid gap-6">
                             <div className="space-y-2">
-                                <label htmlFor="title" className="block text-sm font-semibold text-gray-700">Tiêu đề khóa học *</label>
+                                <label htmlFor="title" className="block text-sm font-semibold text-gray-700">Tiêu đề
+                                    khóa học *</label>
                                 <input
                                     type="text"
                                     name="title"
@@ -170,7 +225,8 @@ const EditCoursePage: React.FC = () => {
                             </div>
 
                             <div className="space-y-2">
-                                <label htmlFor="description" className="block text-sm font-semibold text-gray-700">Mô tả khóa học *</label>
+                                <label htmlFor="description" className="block text-sm font-semibold text-gray-700">Mô tả
+                                    khóa học *</label>
                                 <textarea
                                     name="description"
                                     id="description"
@@ -185,7 +241,9 @@ const EditCoursePage: React.FC = () => {
 
                             <div className="grid md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
-                                    <label htmlFor="categoryId" className="block text-sm font-semibold text-gray-700"><Tag className="inline h-4 w-4 mr-1" />Danh mục *</label>
+                                    <label htmlFor="categoryId"
+                                           className="block text-sm font-semibold text-gray-700"><Tag
+                                        className="inline h-4 w-4 mr-1"/>Danh mục *</label>
                                     <select
                                         name="categoryId"
                                         id="categoryId"
@@ -202,7 +260,8 @@ const EditCoursePage: React.FC = () => {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <label htmlFor="levelId" className="block text-sm font-semibold text-gray-700">Cấp độ *</label>
+                                    <label htmlFor="levelId" className="block text-sm font-semibold text-gray-700">Cấp
+                                        độ *</label>
                                     <select
                                         name="levelId"
                                         id="levelId"
@@ -220,7 +279,9 @@ const EditCoursePage: React.FC = () => {
                             </div>
 
                             <div className="space-y-2">
-                                <label htmlFor="thumbnailUrl" className="block text-sm font-semibold text-gray-700"><Image className="inline h-4 w-4 mr-1" />URL ảnh bìa *</label>
+                                <label htmlFor="thumbnailUrl"
+                                       className="block text-sm font-semibold text-gray-700"><Image
+                                    className="inline h-4 w-4 mr-1"/>URL ảnh bìa *</label>
                                 <input
                                     type="url"
                                     name="thumbnailUrl"
@@ -235,12 +296,13 @@ const EditCoursePage: React.FC = () => {
 
                             <div className="bg-gray-50 p-6 rounded-lg border-2 border-dashed border-gray-300">
                                 <div className="flex items-center mb-4">
-                                    <DollarSign className="h-5 w-5 text-green-600 mr-2" />
+                                    <DollarSign className="h-5 w-5 text-green-600 mr-2"/>
                                     <h3 className="text-lg font-semibold text-gray-900">Định giá khóa học</h3>
                                 </div>
                                 <div className="grid md:grid-cols-2 gap-6">
                                     <div className="space-y-2">
-                                        <label htmlFor="price" className="block text-sm font-semibold text-gray-700">Giá gốc (VNĐ) *</label>
+                                        <label htmlFor="price" className="block text-sm font-semibold text-gray-700">Giá
+                                            gốc (VNĐ) *</label>
                                         <input
                                             type="number"
                                             name="price"
@@ -254,7 +316,9 @@ const EditCoursePage: React.FC = () => {
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <label htmlFor="discountPrice" className="block text-sm font-semibold text-gray-700">Giá khuyến mãi (VNĐ)</label>
+                                        <label htmlFor="discountPrice"
+                                               className="block text-sm font-semibold text-gray-700">Giá khuyến mãi
+                                            (VNĐ)</label>
                                         <input
                                             type="number"
                                             name="discountPrice"
@@ -268,6 +332,79 @@ const EditCoursePage: React.FC = () => {
                                     </div>
                                 </div>
                             </div>
+
+                            {/* Phần cập nhật trạng thái cho SELLER */}
+                            {userRole === 'SELLER' && courseDetails && ( // Chỉ hiển thị nếu là SELLER và có chi tiết khóa học
+                                <div className="mt-8 pt-8 border-t border-gray-200">
+                                    <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                                        <Info className="h-6 w-6 mr-2 text-indigo-600" /> Quản lý trạng thái khóa học
+                                    </h2>
+                                    <div className="space-y-4">
+                                        <p className="text-gray-700">
+                                            Trạng thái hiện tại: <span className={`font-semibold ${
+                                            courseDetails.status === 'PUBLISHED' ? 'text-green-600' :
+                                                courseDetails.status === 'PENDING_APPROVAL' ? 'text-yellow-600' :
+                                                    courseDetails.status === 'REJECTED' ? 'text-red-600' :
+                                                        'text-gray-600'
+                                        }`}>
+                    {getLocalizedCourseStatus(courseDetails.status)}
+                </span>
+                                        </p>
+
+                                        {/* Nút/dropdown cho SELLER để chuyển trạng thái */}
+                                        <div className="flex gap-4">
+                                            {courseDetails.status === 'DRAFT' && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleUpdateCourseStatus('PENDING_APPROVAL')}
+                                                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                                    disabled={isUpdatingCourseStatus}
+                                                >
+                                                    {isUpdatingCourseStatus ? (
+                                                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white-500 inline-block mr-2"></div>
+                                                    ) : (
+                                                        <Upload className="h-5 w-5 mr-2" />
+                                                    )}
+                                                    Gửi duyệt
+                                                </button>
+                                            )}
+
+                                            {courseDetails.status === 'PENDING_APPROVAL' && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleUpdateCourseStatus('DRAFT')}
+                                                    className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                                    disabled={isUpdatingCourseStatus}
+                                                >
+                                                    {isUpdatingCourseStatus ? (
+                                                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-500 inline-block mr-2"></div>
+                                                    ) : (
+                                                        <RotateCcw className="h-5 w-5 mr-2" />
+                                                    )}
+                                                    Rút lại bản nháp
+                                                </button>
+                                            )}
+
+                                            {courseDetails.status === 'REJECTED' && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleUpdateCourseStatus('DRAFT')}
+                                                    className="inline-flex items-center px-4 py-2 border border-blue-300 text-sm font-medium rounded-md shadow-sm text-blue-700 bg-blue-50 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                                    disabled={isUpdatingCourseStatus}
+                                                >
+                                                    {isUpdatingCourseStatus ? (
+                                                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500 inline-block mr-2"></div>
+                                                    ) : (
+                                                        <Edit className="h-5 w-5 mr-2" />
+                                                    )}
+                                                    Chỉnh sửa lại (về bản nháp)
+                                                </button>
+                                            )}
+                                            {/* Bạn có thể thêm các trạng thái khác nếu SELLER có thể thay đổi */}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                 );
@@ -276,20 +413,24 @@ const EditCoursePage: React.FC = () => {
                 return (
                     <div className="space-y-8">
                         <div className="text-center border-b pb-6">
-                            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <CheckCircle className="h-8 w-8 text-green-600" />
+                            <div
+                                className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <CheckCircle className="h-8 w-8 text-green-600"/>
                             </div>
                             <h2 className="text-2xl font-bold text-gray-900 mb-2">Xác nhận thông tin</h2>
                             <p className="text-gray-600">Kiểm tra lại thông tin trước khi cập nhật khóa học</p>
                         </div>
 
-                        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
+                        <div
+                            className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
                             <div className="flex items-start space-x-4">
-                                <div className="w-24 h-16 bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
+                                <div
+                                    className="w-24 h-16 bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
                                     {formData.thumbnailUrl ? (
-                                        <img src={formData.thumbnailUrl} alt="Thumbnail Preview" className="object-cover w-full h-full" />
+                                        <img src={formData.thumbnailUrl} alt="Thumbnail Preview"
+                                             className="object-cover w-full h-full"/>
                                     ) : (
-                                        <Image className="h-8 w-8 text-gray-400" />
+                                        <Image className="h-8 w-8 text-gray-400"/>
                                     )}
                                 </div>
                                 <div className="flex-1">
@@ -331,11 +472,13 @@ const EditCoursePage: React.FC = () => {
                             </div>
                             <div className="flex justify-between items-center py-3 border-b border-gray-200">
                                 <span className="font-medium text-gray-700">Danh mục:</span>
-                                <span className="text-gray-900">{categories.find(c => c.id === formData.categoryId)?.name}</span>
+                                <span
+                                    className="text-gray-900">{categories.find(c => c.id === formData.categoryId)?.name}</span>
                             </div>
                             <div className="flex justify-between items-center py-3 border-b border-gray-200">
                                 <span className="font-medium text-gray-700">Cấp độ:</span>
-                                <span className="text-gray-900">{levels.find(l => l.id === formData.levelId)?.name}</span>
+                                <span
+                                    className="text-gray-900">{levels.find(l => l.id === formData.levelId)?.name}</span>
                             </div>
                             <div className="flex justify-between items-center py-3 border-b border-gray-200">
                                 <span className="font-medium text-gray-700">Giá gốc:</span>
@@ -344,7 +487,8 @@ const EditCoursePage: React.FC = () => {
                             {formData.discountPrice !== null && formData.discountPrice !== 0 && (
                                 <div className="flex justify-between items-center py-3 border-b border-gray-200">
                                     <span className="font-medium text-gray-700">Giá khuyến mãi:</span>
-                                    <span className="text-green-600 font-semibold">{formData.discountPrice.toLocaleString()}đ</span>
+                                    <span
+                                        className="text-green-600 font-semibold">{formData.discountPrice.toLocaleString()}đ</span>
                                 </div>
                             )}
                         </div>
@@ -369,7 +513,7 @@ const EditCoursePage: React.FC = () => {
     if (error && !courseDetails) {
         return (
             <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center">
-                <Navbar />
+                <Navbar/>
                 <div className="max-w-xl mx-auto p-8 bg-white rounded-lg shadow-xl text-center">
                     <h2 className="text-2xl font-bold text-red-600 mb-4">Lỗi tải khóa học</h2>
                     <p className="text-gray-700 mb-6">{error}</p>
@@ -380,18 +524,20 @@ const EditCoursePage: React.FC = () => {
                         Quay lại trang quản lý
                     </button>
                 </div>
-                <Footer />
+                <Footer/>
             </div>
         );
     }
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
-            <Navbar />
+            <Navbar/>
             <div className="container mx-auto px-4 py-8">
+                <BackButton size="lg"/>
                 <div className="max-w-4xl mx-auto">
                     <div className="text-center mb-12">
-                        <h1 className="text-4xl font-bold text-gray-900 mb-4">Chỉnh sửa Khóa học: {courseDetails?.title}</h1>
+                        <h1 className="text-4xl font-bold text-gray-900 mb-4">Chỉnh sửa Khóa
+                            học: {courseDetails?.title}</h1>
                         <p className="text-lg text-gray-600">Cập nhật thông tin chi tiết của khóa học này</p>
                     </div>
 
@@ -399,12 +545,14 @@ const EditCoursePage: React.FC = () => {
                     <div className="flex items-center justify-center mb-12">
                         <div className="flex items-center space-x-8">
                             <div className="flex items-center">
-                                <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${
-                                    currentStep >= 1 ? 'bg-blue-600 text-white shadow-lg' : 'bg-gray-200 text-gray-600'
-                                }`}>
-                                    <Info className="h-6 w-6" />
+                                <div
+                                    className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${
+                                        currentStep >= 1 ? 'bg-blue-600 text-white shadow-lg' : 'bg-gray-200 text-gray-600'
+                                    }`}>
+                                    <Info className="h-6 w-6"/>
                                 </div>
-                                <span className={`ml-3 font-medium ${currentStep >= 1 ? 'text-blue-600' : 'text-gray-500'}`}>
+                                <span
+                                    className={`ml-3 font-medium ${currentStep >= 1 ? 'text-blue-600' : 'text-gray-500'}`}>
                 Thông tin
               </span>
                             </div>
@@ -414,12 +562,14 @@ const EditCoursePage: React.FC = () => {
                             }`}></div>
 
                             <div className="flex items-center">
-                                <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${
-                                    currentStep >= 2 ? 'bg-blue-600 text-white shadow-lg' : 'bg-gray-200 text-gray-600'
-                                }`}>
-                                    <CheckCircle className="h-6 w-6" />
+                                <div
+                                    className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${
+                                        currentStep >= 2 ? 'bg-blue-600 text-white shadow-lg' : 'bg-gray-200 text-gray-600'
+                                    }`}>
+                                    <CheckCircle className="h-6 w-6"/>
                                 </div>
-                                <span className={`ml-3 font-medium ${currentStep >= 2 ? 'text-blue-600' : 'text-gray-500'}`}>
+                                <span
+                                    className={`ml-3 font-medium ${currentStep >= 2 ? 'text-blue-600' : 'text-gray-500'}`}>
                 Xác nhận
               </span>
                             </div>
@@ -432,14 +582,15 @@ const EditCoursePage: React.FC = () => {
                             {/* Error Message */}
                             {error && (
                                 <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center">
-                                    <X className="h-5 w-5 text-red-500 mr-3" />
+                                    <X className="h-5 w-5 text-red-500 mr-3"/>
                                     <span className="text-red-700 font-medium">{error}</span>
                                 </div>
                             )}
                             {/* Success Message */}
                             {successMessage && (
-                                <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center">
-                                    <Check className="h-5 w-5 text-green-500 mr-3" />
+                                <div
+                                    className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center">
+                                    <Check className="h-5 w-5 text-green-500 mr-3"/>
                                     <span className="text-green-700 font-medium">{successMessage}</span>
                                 </div>
                             )}
@@ -456,7 +607,7 @@ const EditCoursePage: React.FC = () => {
                                             className="inline-flex items-center px-6 py-3 border border-gray-300 text-base font-semibold rounded-lg shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
                                             disabled={isUpdating}
                                         >
-                                            <ArrowLeft className="h-5 w-5 mr-2" />
+                                            <ArrowLeft className="h-5 w-5 mr-2"/>
                                             Quay lại
                                         </button>
                                     )}
@@ -468,7 +619,7 @@ const EditCoursePage: React.FC = () => {
                                             disabled={isUpdating}
                                         >
                                             Tiếp theo
-                                            <ArrowRight className="h-5 w-5 ml-2" />
+                                            <ArrowRight className="h-5 w-5 ml-2"/>
                                         </button>
                                     )}
                                     {currentStep === 2 && (
@@ -479,15 +630,19 @@ const EditCoursePage: React.FC = () => {
                                         >
                                             {isUpdating ? (
                                                 <>
-                                                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                                                         xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                         viewBox="0 0 24 24">
+                                                        <circle className="opacity-25" cx="12" cy="12" r="10"
+                                                                stroke="currentColor" strokeWidth="4"></circle>
+                                                        <path className="opacity-75" fill="currentColor"
+                                                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                                     </svg>
                                                     Đang cập nhật...
                                                 </>
                                             ) : (
                                                 <>
-                                                    <Check className="h-5 w-5 mr-2" />
+                                                    <Check className="h-5 w-5 mr-2"/>
                                                     Cập nhật khóa học
                                                 </>
                                             )}
@@ -499,7 +654,7 @@ const EditCoursePage: React.FC = () => {
                     </div>
                 </div>
             </div>
-            <Footer />
+            <Footer/>
         </div>
     );
 };

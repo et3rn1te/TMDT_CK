@@ -61,30 +61,30 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
             </div>
 
             {/* Price type filter */}
-            <div>
-                <h3 className="font-semibold text-gray-900 mb-3">Loại giá</h3>
-                <div className="space-y-2">
-                    {[
-                        {id: 'free', label: 'Miễn phí'},
-                        {id: 'paid', label: 'Có phí'},
-                        {id: 'discount', label: 'Đang giảm giá'}
-                    ].map(item => (
-                        <div key={item.id} className="flex items-center">
-                            <input
-                                id={`${idPrefix}price-${item.id}`}
-                                name={`${idPrefix}price-type`}
-                                type="checkbox"
-                                className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-                                checked={selectedPriceTypes.includes(item.id)}
-                                onChange={() => onPriceTypeChange(item.id)}
-                            />
-                            <label htmlFor={`${idPrefix}price-${item.id}`} className="ml-3 text-sm text-gray-700">
-                                {item.label}
-                            </label>
-                        </div>
-                    ))}
-                </div>
-            </div>
+            {/*<div>*/}
+            {/*    <h3 className="font-semibold text-gray-900 mb-3">Loại giá</h3>*/}
+            {/*    <div className="space-y-2">*/}
+            {/*        {[*/}
+            {/*            {id: 'free', label: 'Miễn phí'},*/}
+            {/*            {id: 'paid', label: 'Có phí'},*/}
+            {/*            {id: 'discount', label: 'Đang giảm giá'}*/}
+            {/*        ].map(item => (*/}
+            {/*            <div key={item.id} className="flex items-center">*/}
+            {/*                <input*/}
+            {/*                    id={`${idPrefix}price-${item.id}`}*/}
+            {/*                    name={`${idPrefix}price-type`}*/}
+            {/*                    type="checkbox"*/}
+            {/*                    className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"*/}
+            {/*                    checked={selectedPriceTypes.includes(item.id)}*/}
+            {/*                    onChange={() => onPriceTypeChange(item.id)}*/}
+            {/*                />*/}
+            {/*                <label htmlFor={`${idPrefix}price-${item.id}`} className="ml-3 text-sm text-gray-700">*/}
+            {/*                    {item.label}*/}
+            {/*                </label>*/}
+            {/*            </div>*/}
+            {/*        ))}*/}
+            {/*    </div>*/}
+            {/*</div>*/}
         </div>
     );
 };

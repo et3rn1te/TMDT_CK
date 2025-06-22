@@ -57,12 +57,12 @@ public class ApplicationInitConfig {
     @Bean
     @DependsOn("applicationRunner1")
     ApplicationRunner applicationRunner2(UserRepository userRepository, RoleRepository roleRepository) {
+        var roles = new HashSet<Role>();
         return args -> {
             if (userRepository.findByEmail("admin@admin.com").isEmpty()) {
                 Role adminRole = roleRepository.findByName("ADMIN")
                         .orElseThrow(() -> new RuntimeException("Role not found"));
 
-                var roles = new HashSet<Role>();
                 roles.add(adminRole);
 
                 User user = User.builder()
@@ -74,6 +74,23 @@ public class ApplicationInitConfig {
 
                 userRepository.save(user);
                 log.warn("admin user has been created with default password: admin, please change it");
+
+            }
+            if (userRepository.findByEmail("seller@seller.com").isEmpty()) {
+                Role sellerRole = roleRepository.findByName("SELLER")
+                        .orElseThrow(() -> new RuntimeException("Role not found"));
+
+                roles.add(sellerRole);
+
+                User user = User.builder()
+                        .email("seller@seller.com")
+                        .password(passwordEncoder.encode("seller"))
+                        .fullName("seller")
+                        .roles(roles)
+                        .build();
+
+                userRepository.save(user);
+                log.warn("seller user has been created with default password: seller, please change it");
 
             }
         };
