@@ -184,7 +184,7 @@ const ManageCourse = () => {
                                 <p className="text-gray-600 mt-1">Quản lý và theo dõi tất cả khóa học của bạn</p>
                             </div>
                             {(userRole === 'ADMIN' || userRole === 'SELLER') && (
-                                <Link to="/create-course">
+                                <Link to="/add-course">
                                     <button className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl transition-colors shadow-sm">
                                         <PlusCircle size={18}/>
                                         Thêm khóa học mới

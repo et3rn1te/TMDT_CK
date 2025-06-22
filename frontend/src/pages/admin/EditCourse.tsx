@@ -1,6 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import {useParams, useNavigate} from 'react-router-dom';
 import {
+    Edit,
     Info,
     CheckCircle,
     BookOpen,
@@ -17,7 +18,7 @@ import {
 import {courseApi} from '../../api/courses';
 import {categoryApi} from '../../api/categories';
 import {levelApi} from '../../api/levels';
-import {CourseResponse, CourseUpdateRequest, CourseStatusUpdateRequest} from '../../types/courseTypes';
+import {CourseResponse, CourseUpdateRequest} from '../../types/courseTypes';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import {CategoryResponse} from "../../types/categoryTypes.ts";
@@ -44,7 +45,7 @@ const EditCoursePage: React.FC = () => {
     const [categories, setCategories] = useState<CategoryResponse[]>([]);
     const [isUpdatingCourseStatus, setIsUpdatingCourseStatus] = useState(false);
     const [levels, setLevels] = useState<LevelResponse[]>([]);
-
+    const [selectedAdminStatus, setSelectedAdminStatus] = useState<string>('');
     const [isLoading, setIsLoading] = useState(true); // For initial data fetch (course + dropdowns)
     const [isUpdating, setIsUpdating] = useState(false); // For form submission
     const [error, setError] = useState<string | null>(null);
@@ -52,12 +53,18 @@ const EditCoursePage: React.FC = () => {
 
     const getLocalizedCourseStatus = (status: string) => {
         switch (status) {
-            case 'DRAFT': return 'Bản nháp';
-            case 'PENDING_APPROVAL': return 'Chờ duyệt';
-            case 'PUBLISHED': return 'Đã xuất bản';
-            case 'REJECTED': return 'Đã từ chối';
-            case 'ARCHIVED': return 'Đã lưu trữ';
-            default: return status;
+            case 'DRAFT':
+                return 'Bản nháp';
+            case 'PENDING_APPROVAL':
+                return 'Chờ duyệt';
+            case 'PUBLISHED':
+                return 'Đã xuất bản';
+            case 'REJECTED':
+                return 'Đã từ chối';
+            case 'ARCHIVED':
+                return 'Đã lưu trữ';
+            default:
+                return status;
         }
     };
 
@@ -85,6 +92,7 @@ const EditCoursePage: React.FC = () => {
                     levelId: courseData.level.id,
                     thumbnailUrl: courseData.thumbnailUrl || '',
                 });
+                setSelectedAdminStatus(courseData.status);
 
                 const [fetchedCategories, fetchedLevels] = await Promise.all([
                     categoryApi.getAllCategories(),
@@ -113,6 +121,11 @@ const EditCoursePage: React.FC = () => {
                 ? Number(value)
                 : value,
         }));
+    };
+
+    // Handle change for admin status dropdown
+    const handleAdminStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setSelectedAdminStatus(e.target.value);
     };
 
     // Navigate to the next step (validation added)
@@ -174,7 +187,7 @@ const EditCoursePage: React.FC = () => {
         if (window.confirm(confirmMessage)) {
             setIsUpdatingCourseStatus(true);
             try {
-                await courseApi.updateCourseStatus(parseInt(courseId), { status: newStatus });
+                await courseApi.updateCourseStatus(parseInt(courseId), {status: newStatus});
                 alert(`Trạng thái khóa học đã được cập nhật thành "${newStatus}"!`);
                 // Tải lại chi tiết khóa học để cập nhật UI ngay lập tức
                 const updatedCourse = await courseApi.getCourseById(parseInt(courseId));
@@ -184,6 +197,7 @@ const EditCoursePage: React.FC = () => {
                     categoryId: updatedCourse.category.id,
                     levelId: updatedCourse.level.id,
                 });
+                setSelectedAdminStatus(updatedCourse.status);
             } catch (err: any) {
                 console.error("Lỗi khi cập nhật trạng thái khóa học:", err);
                 alert(err.message || "Không thể cập nhật trạng thái khóa học.");
@@ -337,7 +351,7 @@ const EditCoursePage: React.FC = () => {
                             {userRole === 'SELLER' && courseDetails && ( // Chỉ hiển thị nếu là SELLER và có chi tiết khóa học
                                 <div className="mt-8 pt-8 border-t border-gray-200">
                                     <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
-                                        <Info className="h-6 w-6 mr-2 text-indigo-600" /> Quản lý trạng thái khóa học
+                                        <Info className="h-6 w-6 mr-2 text-indigo-600"/> Quản lý trạng thái khóa học
                                     </h2>
                                     <div className="space-y-4">
                                         <p className="text-gray-700">
@@ -361,9 +375,10 @@ const EditCoursePage: React.FC = () => {
                                                     disabled={isUpdatingCourseStatus}
                                                 >
                                                     {isUpdatingCourseStatus ? (
-                                                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white-500 inline-block mr-2"></div>
+                                                        <div
+                                                            className="animate-spin rounded-full h-5 w-5 border-b-2 border-white-500 inline-block mr-2"></div>
                                                     ) : (
-                                                        <Upload className="h-5 w-5 mr-2" />
+                                                        <Upload className="h-5 w-5 mr-2"/>
                                                     )}
                                                     Gửi duyệt
                                                 </button>
@@ -377,9 +392,10 @@ const EditCoursePage: React.FC = () => {
                                                     disabled={isUpdatingCourseStatus}
                                                 >
                                                     {isUpdatingCourseStatus ? (
-                                                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-500 inline-block mr-2"></div>
+                                                        <div
+                                                            className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-500 inline-block mr-2"></div>
                                                     ) : (
-                                                        <RotateCcw className="h-5 w-5 mr-2" />
+                                                        <RotateCcw className="h-5 w-5 mr-2"/>
                                                     )}
                                                     Rút lại bản nháp
                                                 </button>
@@ -393,9 +409,10 @@ const EditCoursePage: React.FC = () => {
                                                     disabled={isUpdatingCourseStatus}
                                                 >
                                                     {isUpdatingCourseStatus ? (
-                                                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500 inline-block mr-2"></div>
+                                                        <div
+                                                            className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500 inline-block mr-2"></div>
                                                     ) : (
-                                                        <Edit className="h-5 w-5 mr-2" />
+                                                        <Edit className="h-5 w-5 mr-2"/>
                                                     )}
                                                     Chỉnh sửa lại (về bản nháp)
                                                 </button>
@@ -405,6 +422,67 @@ const EditCoursePage: React.FC = () => {
                                     </div>
                                 </div>
                             )}
+
+                            {/* Phần cập nhật trạng thái cho ADMIN */}
+                            {userRole === 'ADMIN' && courseDetails && (
+                                <div className="mt-8 pt-8 border-t border-gray-200">
+                                    <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                                        <Info className="h-6 w-6 mr-2 text-blue-600"/> Quản lý trạng thái khóa học
+                                    </h2>
+                                    <div className="space-y-4">
+                                        <p className="text-gray-700">
+                                            Trạng thái hiện tại: <span className={`font-semibold ${
+                                            courseDetails.status === 'PUBLISHED' ? 'text-green-600' :
+                                                courseDetails.status === 'PENDING_APPROVAL' ? 'text-yellow-600' :
+                                                    courseDetails.status === 'REJECTED' ? 'text-red-600' :
+                                                        'text-gray-600'
+                                        }`}>
+                                                {getLocalizedCourseStatus(courseDetails.status)}
+                                            </span>
+                                        </p>
+                                        <div className="space-y-4">
+                                            <div className="flex items-center gap-4">
+                                                <label htmlFor="adminStatus"
+                                                       className="block text-sm font-semibold text-gray-700">
+                                                    Chọn trạng thái mới:
+                                                </label>
+                                                <select
+                                                    id="adminStatus"
+                                                    name="adminStatus"
+                                                    value={selectedAdminStatus}
+                                                    onChange={handleAdminStatusChange}
+                                                    className="min-w-[200px] px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                                >
+                                                    <option value="DRAFT">{getLocalizedCourseStatus('DRAFT')}</option>
+                                                    <option
+                                                        value="PENDING_APPROVAL">{getLocalizedCourseStatus('PENDING_APPROVAL')}</option>
+                                                    <option
+                                                        value="PUBLISHED">{getLocalizedCourseStatus('PUBLISHED')}</option>
+                                                    <option
+                                                        value="REJECTED">{getLocalizedCourseStatus('REJECTED')}</option>
+                                                    <option
+                                                        value="ARCHIVED">{getLocalizedCourseStatus('ARCHIVED')}</option>
+                                                </select>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleUpdateCourseStatus(selectedAdminStatus)}
+                                                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                                disabled={isUpdatingCourseStatus}
+                                            >
+                                                {isUpdatingCourseStatus ? (
+                                                    <div
+                                                        className="animate-spin rounded-full h-5 w-5 border-b-2 border-white-500 inline-block mr-2"></div>
+                                                ) : (
+                                                    <Check className="h-5 w-5 mr-2"/>
+                                                )}
+                                                Cập nhật trạng thái
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
                         </div>
                     </div>
                 );
@@ -479,6 +557,11 @@ const EditCoursePage: React.FC = () => {
                                 <span className="font-medium text-gray-700">Cấp độ:</span>
                                 <span
                                     className="text-gray-900">{levels.find(l => l.id === formData.levelId)?.name}</span>
+                            </div>
+                            <div className="flex justify-between items-center py-3 border-b border-gray-200">
+                                <span className="font-medium text-gray-700">Trạng thái:</span>
+                                <span
+                                    className="text-gray-900">{courseDetails ? getLocalizedCourseStatus(courseDetails.status) : 'N/A'}</span>
                             </div>
                             <div className="flex justify-between items-center py-3 border-b border-gray-200">
                                 <span className="font-medium text-gray-700">Giá gốc:</span>
