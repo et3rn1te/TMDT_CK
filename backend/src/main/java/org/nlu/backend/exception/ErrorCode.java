@@ -27,10 +27,10 @@ public enum ErrorCode {
     ALREADY_ENROLLED(1016, "User already enrolled", HttpStatus.CONFLICT),
     ACCESS_DENIED(1017, "Access denied", HttpStatus.FORBIDDEN),
     INVALID_COURSE_STATUS(1018, "Invalid course status", HttpStatus.BAD_REQUEST),
-    OTP_NOT_VALID(1019, "OTP not valid", HttpStatus.BAD_REQUEST),
-    OTP_IS_USED(1020, "OTP is used", HttpStatus.BAD_REQUEST),
+    PERMISSION_DENIED(1019, "Permission denied", HttpStatus.FORBIDDEN),
+    OTP_NOT_VALID(1020, "OTP not valid", HttpStatus.BAD_REQUEST),
+    OTP_IS_USED(1021, "OTP is used", HttpStatus.BAD_REQUEST),
     OTP_IS_EXPIRY(10019, "OTP is no longer to used", HttpStatus.BAD_REQUEST),
-
     ;
 
     private int code;

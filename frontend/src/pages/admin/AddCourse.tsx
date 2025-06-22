@@ -9,6 +9,7 @@ import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import {CategoryResponse} from "../../types/categoryTypes.ts";
 import {LevelResponse} from "../../types/levelTypes.ts";
+import BackButton from "../../components/common/BackButton.tsx";
 
 const AddCoursePage: React.FC = () => {
     const navigate = useNavigate();
@@ -26,6 +27,10 @@ const AddCoursePage: React.FC = () => {
     });
     const [categories, setCategories] = useState<CategoryResponse[]>([]);
     const [levels, setLevels] = useState<LevelResponse[]>([]);
+
+    // State for price inputs to handle formatted strings
+    const [priceInput, setPriceInput] = useState<string>('');
+    const [discountPriceInput, setDiscountPriceInput] = useState<string>('');
 
     const [isLoading, setIsLoading] = useState(false); // For form submission
     const [isDataLoading, setIsDataLoading] = useState(true); // For loading categories/levels
@@ -52,14 +57,40 @@ const AddCoursePage: React.FC = () => {
         fetchDropdownData();
     }, []);
 
+    // Effect to update formatted price inputs when formData.price/discountPrice changes
+    useEffect(() => {
+        setPriceInput(formData.price === 0 ? '' : new Intl.NumberFormat('vi-VN').format(formData.price));
+        setDiscountPriceInput(formData.discountPrice === null || formData.discountPrice === 0 ? '' : new Intl.NumberFormat('vi-VN').format(formData.discountPrice));
+    }, [formData.price, formData.discountPrice]);
+
+
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData((prevData) => ({
             ...prevData,
-            [name]: (name === 'price' || name === 'discountPrice' || name === 'categoryId' || name === 'levelId')
+            [name]: (name === 'categoryId' || name === 'levelId')
                 ? Number(value)
                 : value,
         }));
+    };
+
+    const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        // Remove all non-digit characters for internal storage
+        const rawValue = value.replace(/\D/g, '');
+        const numericValue = rawValue === '' ? 0 : Number(rawValue);
+
+        if (name === 'price') {
+            setFormData(prevData => ({ ...prevData, price: numericValue }));
+        } else if (name === 'discountPrice') {
+            setFormData(prevData => ({ ...prevData, discountPrice: numericValue || null }));
+        }
+        // Update the input state for display (will be formatted by useEffect)
+        if (name === 'price') {
+            setPriceInput(value);
+        } else if (name === 'discountPrice') {
+            setDiscountPriceInput(value);
+        }
     };
 
     const nextStep = () => {
@@ -110,6 +141,9 @@ const AddCoursePage: React.FC = () => {
                 sellerId: 0,
                 thumbnailUrl: '',
             });
+            // Reset price input states as well
+            setPriceInput('');
+            setDiscountPriceInput('');
             setCurrentStep(1); // Reset to first step
             setTimeout(() => navigate('/manage-courses'), 1500); // Redirect after success message
         } catch (err) {
@@ -238,14 +272,13 @@ const AddCoursePage: React.FC = () => {
                                             Giá gốc (VNĐ) *
                                         </label>
                                         <input
-                                            type="number"
+                                            type="text" // Changed to text
                                             name="price"
                                             id="price"
-                                            value={formData.price}
-                                            onChange={handleInputChange}
+                                            value={priceInput} // Use priceInput state
+                                            onChange={handlePriceChange} // Use new handler
                                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900"
-                                            placeholder="499000"
-                                            min="0"
+                                            placeholder="4.990.000"
                                             required
                                         />
                                     </div>
@@ -254,14 +287,13 @@ const AddCoursePage: React.FC = () => {
                                             Giá khuyến mãi (VNĐ)
                                         </label>
                                         <input
-                                            type="number"
+                                            type="text" // Changed to text
                                             name="discountPrice"
                                             id="discountPrice"
-                                            value={formData.discountPrice || ''}
-                                            onChange={handleInputChange}
+                                            value={discountPriceInput} // Use discountPriceInput state
+                                            onChange={handlePriceChange} // Use new handler
                                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900"
-                                            placeholder="399000"
-                                            min="0"
+                                            placeholder="3.990.000"
                                         />
                                     </div>
                                 </div>
@@ -306,14 +338,14 @@ const AddCoursePage: React.FC = () => {
                                 </div>
                                 <div className="text-right">
                                     <div className="text-2xl font-bold text-green-600">
-                                        {formData.discountPrice ?
-                                            `${formData.discountPrice.toLocaleString()}đ` :
-                                            `${formData.price.toLocaleString()}đ`
+                                        {formData.discountPrice && formData.discountPrice > 0 ? // Check if discountPrice exists and is greater than 0
+                                            `${new Intl.NumberFormat('vi-VN').format(formData.discountPrice)}đ` :
+                                            `${new Intl.NumberFormat('vi-VN').format(formData.price)}đ`
                                         }
                                     </div>
-                                    {formData.discountPrice && (
+                                    {formData.discountPrice && formData.discountPrice > 0 && ( // Display original price only if discount exists
                                         <div className="text-sm text-gray-500 line-through">
-                                            {formData.price.toLocaleString()}đ
+                                            {new Intl.NumberFormat('vi-VN').format(formData.price)}đ
                                         </div>
                                     )}
                                 </div>
@@ -340,12 +372,12 @@ const AddCoursePage: React.FC = () => {
                             </div>
                             <div className="flex justify-between items-center py-3 border-b border-gray-200">
                                 <span className="font-medium text-gray-700">Giá gốc:</span>
-                                <span className="text-gray-900 font-semibold">{formData.price.toLocaleString()}đ</span>
+                                <span className="text-gray-900 font-semibold">{new Intl.NumberFormat('vi-VN').format(formData.price)}đ</span>
                             </div>
                             {formData.discountPrice !== null && formData.discountPrice !== 0 && ( // Ensure discountPrice is not null or 0
                                 <div className="flex justify-between items-center py-3 border-b border-gray-200">
                                     <span className="font-medium text-gray-700">Giá khuyến mãi:</span>
-                                    <span className="text-green-600 font-semibold">{formData.discountPrice.toLocaleString()}đ</span>
+                                    <span className="text-green-600 font-semibold">{new Intl.NumberFormat('vi-VN').format(formData.discountPrice)}đ</span>
                                 </div>
                             )}
                         </div>
@@ -370,6 +402,7 @@ const AddCoursePage: React.FC = () => {
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
             <Navbar />
             <div className="container mx-auto px-4 py-8">
+                <BackButton size="lg" />
                 <div className="max-w-4xl mx-auto">
                     {/* Header */}
                     <div className="text-center mb-12">
