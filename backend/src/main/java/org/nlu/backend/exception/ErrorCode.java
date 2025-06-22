@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatusCode;
 @Getter
 public enum ErrorCode {
     UNCATEGORIZED_EXCEPTION(9999, "Uncategorized Exception", HttpStatus.INTERNAL_SERVER_ERROR),
+    JWT_ERROR(9998, "JWT Error", HttpStatus.INTERNAL_SERVER_ERROR),
     INVALID_KEY(1001, "Invalid message key", HttpStatus.BAD_REQUEST),
     UNAUTHENTICATED(1002, "Unauthenticated", HttpStatus.UNAUTHORIZED),
     UNAUTHORIZED(1003, "You do not have permission", HttpStatus.FORBIDDEN),
@@ -26,7 +27,10 @@ public enum ErrorCode {
     ALREADY_ENROLLED(1016, "User already enrolled", HttpStatus.CONFLICT),
     ACCESS_DENIED(1017, "Access denied", HttpStatus.FORBIDDEN),
     INVALID_COURSE_STATUS(1018, "Invalid course status", HttpStatus.BAD_REQUEST),
-    PERMISSION_DENIED(1018, "Permission denied", HttpStatus.FORBIDDEN),
+    PERMISSION_DENIED(1019, "Permission denied", HttpStatus.FORBIDDEN),
+    OTP_NOT_VALID(1020, "OTP not valid", HttpStatus.BAD_REQUEST),
+    OTP_IS_USED(1021, "OTP is used", HttpStatus.BAD_REQUEST),
+    OTP_IS_EXPIRY(10019, "OTP is no longer to used", HttpStatus.BAD_REQUEST),
     ;
 
     private int code;

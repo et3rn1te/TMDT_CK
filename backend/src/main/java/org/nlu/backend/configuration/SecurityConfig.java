@@ -30,6 +30,7 @@ public class SecurityConfig {
 
     private static final String[] PUBLIC_POST_ENDPOINTS = {
             "/users", "/auth/login", "/courses/**", "/categories", "/levels",
+            "/auth/forgot-password", "/auth/verify-otp", "/auth/new-password"
     };
     private static final String[] PUBLIC_GET_ENDPOINTS = {
             "/users/**", "/courses/**", "/categories", "/levels",
@@ -58,7 +59,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, PUBLIC_PUT_ENDPOINTS).permitAll()
                         .requestMatchers(HttpMethod.PATCH, PUBLIC_PATCH_ENDPOINTS).permitAll()
                         .requestMatchers(HttpMethod.DELETE, PUBLIC_DELETE_ENDPOINTS).permitAll()
-                        .anyRequest().permitAll()
+                        .anyRequest().authenticated()
         );
 
         //token

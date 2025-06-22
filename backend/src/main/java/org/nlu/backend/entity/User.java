@@ -3,10 +3,8 @@ package org.nlu.backend.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import org.hibernate.annotations.processing.Pattern;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -44,5 +42,5 @@ public class User extends BaseEntity {
 
     String resetPasswordToken;
 
-    private LocalDateTime resetPasswordExpires;
+    LocalDateTime resetPasswordExpires;
 }

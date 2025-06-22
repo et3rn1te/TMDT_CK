@@ -11,6 +11,7 @@ import org.nlu.backend.repository.UserRepository;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.HashSet;
@@ -23,12 +24,24 @@ public class ApplicationInitConfig {
 
     PasswordEncoder passwordEncoder;
 
-    @Bean
-    ApplicationRunner applicationRunner2(RoleRepository roleRepository) {
+    @Bean(name = "applicationRunner1")
+    ApplicationRunner applicationRunner1(RoleRepository roleRepository) {
         return args -> {
             if (roleRepository.findByName("ADMIN").isEmpty()) {
                 Role role = Role.builder()
                         .name("ADMIN")
+                        .build();
+                roleRepository.save(role);
+            }
+            if (roleRepository.findByName("STUDENT").isEmpty()) {
+                Role role = Role.builder()
+                        .name("STUDENT")
+                        .build();
+                roleRepository.save(role);
+            }
+            if (roleRepository.findByName("SELLER").isEmpty()) {
+                Role role = Role.builder()
+                        .name("SELLER")
                         .build();
                 roleRepository.save(role);
             }
@@ -42,7 +55,8 @@ public class ApplicationInitConfig {
     }
 
     @Bean
-    ApplicationRunner applicationRunner(UserRepository userRepository, RoleRepository roleRepository) {
+    @DependsOn("applicationRunner1")
+    ApplicationRunner applicationRunner2(UserRepository userRepository, RoleRepository roleRepository) {
         var roles = new HashSet<Role>();
         return args -> {
             if (userRepository.findByEmail("admin@admin.com").isEmpty()) {

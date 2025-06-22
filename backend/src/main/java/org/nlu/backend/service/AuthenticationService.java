@@ -11,9 +11,12 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
-import org.nlu.backend.dto.request.AuthenticationRequest;
-import org.nlu.backend.dto.response.AuthenticationResponse;
+import org.nlu.backend.dto.request.auth.AuthenticationRequest;
+import org.nlu.backend.dto.request.auth.ForgotPasswordRequest;
+import org.nlu.backend.dto.request.auth.NewPasswordRequest;
+import org.nlu.backend.dto.response.auth.AuthenticationResponse;
 import org.nlu.backend.dto.response.UserResponse;
+import org.nlu.backend.dto.response.auth.ForgotPasswordResponse;
 import org.nlu.backend.entity.User;
 import org.nlu.backend.exception.AppException;
 import org.nlu.backend.exception.ErrorCode;
@@ -26,8 +29,10 @@ import org.springframework.util.CollectionUtils;
 
 import java.text.ParseException;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.Random;
 import java.util.StringJoiner;
 import java.util.UUID;
 
@@ -38,6 +43,7 @@ public class AuthenticationService {
 
     UserRepository userRepository;
     PasswordEncoder passwordEncoder;
+    EmailService emailService;
     private final UserMapper userMapper;
 
     @NonFinal
@@ -109,7 +115,7 @@ public class AuthenticationService {
             signedJWT.sign(new MACSigner(SIGN_KEY.getBytes()));
             return signedJWT.serialize();
         } catch (JOSEException e) {
-            throw new RuntimeException(e);
+            throw new AppException(ErrorCode.JWT_ERROR);
         }
     }
 
@@ -124,4 +130,50 @@ public class AuthenticationService {
         return stringJoiner.toString();
     }
 
+    public ForgotPasswordResponse forgotPassword(ForgotPasswordRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new AppException(ErrorCode.UNAUTHENTICATED));
+
+        String otp = String.format("%06d", new Random().nextInt(999999)); // generate OTP
+
+        user.setResetPasswordToken(otp);
+        user.setResetPasswordExpires(LocalDateTime.now().plusMinutes(5));
+        userRepository.save(user); // Save the changes to database
+
+        emailService.sendMail(request.getEmail(), "Mã OTP đặt lại mật khẩu",
+                "Mã OTP của bạn là: " + otp + " có hiệu lực trong 5 phút!");
+
+        return ForgotPasswordResponse.builder()
+                .message("Email sent")
+                .build();
+    }
+
+    public String verifyOtp(String email, String otp) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.UNAUTHENTICATED));
+
+        if (user.getResetPasswordToken() == null || user.getResetPasswordToken().isEmpty())
+            throw new AppException(ErrorCode.OTP_IS_USED);
+
+        if (user.getResetPasswordExpires().isBefore(LocalDateTime.now()))
+            throw new AppException(ErrorCode.OTP_IS_EXPIRY);
+
+        if (!user.getResetPasswordToken().equals(otp))
+            throw new AppException(ErrorCode.OTP_NOT_VALID);
+
+        user.setResetPasswordToken(null);
+        user.setResetPasswordExpires(null);
+        userRepository.save(user);
+
+        return user.getEmail();
+    }
+
+    public UserResponse newPassword(NewPasswordRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new AppException(ErrorCode.UNAUTHENTICATED));
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+
+        return userMapper.toUserResponse(userRepository.save(user));
+    }
 }
