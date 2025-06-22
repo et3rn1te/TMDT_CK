@@ -1,4 +1,4 @@
-package org.nlu.backend.dto.response.seller;
+package org.nlu.backend.dto.response.user;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;

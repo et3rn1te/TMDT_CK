@@ -5,7 +5,7 @@ import lombok.experimental.FieldDefaults;
 import org.nlu.backend.dto.response.category.CategoryResponse;
 import org.nlu.backend.dto.response.lesson.LessonSummaryResponse;
 import org.nlu.backend.dto.response.level.LevelResponse;
-import org.nlu.backend.dto.response.seller.SellerResponse;
+import org.nlu.backend.dto.response.user.SellerResponse;
 
 import java.math.BigDecimal;
 import java.util.List;

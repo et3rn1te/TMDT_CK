@@ -2,14 +2,14 @@ import { ArrowRight } from 'lucide-react';
 
 const HeroSection = () => {
   return (
-    <div className="relative bg-indigo-800">
+    <div className="relative bg-indigo-200">
       <div className="absolute inset-0">
         <img
-          className="w-full h-full object-cover"
-          src="/api/placeholder/1920/600"
+          className="w-full h-full object-fill"
+          src="https://img.freepik.com/free-photo/virtual-classroom-study-space_23-2149178650.jpg?t=st=1750609131~exp=1750612731~hmac=7e636615853969fa8b4a856f300d5cd4a1a85716c518d9fcc7421e6cfc2a0f00&w=1380"
           alt="Students learning English"
         />
-        <div className="absolute inset-0 bg-indigo-800 mix-blend-multiply opacity-80" aria-hidden="true"></div>
+        <div className="absolute inset-0 bg-indigo-800 mix-blend-multiply opacity-30" aria-hidden="true"></div>
       </div>
       <div className="relative max-w-7xl mx-auto py-24 px-4 sm:py-32 sm:px-6 lg:px-8">
         <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">Nâng cao khả năng tiếng Anh cùng EduEnglish</h1>
