@@ -12,7 +12,6 @@ const Home = () => {
       <Navbar />
       <main className="flex-grow">
         <HeroSection />
-        <FeaturedCourses />
         <FeaturesSection />
         <TestimonialsSection />
         <CTASection />
