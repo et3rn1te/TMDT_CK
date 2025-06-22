@@ -1,4 +1,4 @@
-package org.nlu.backend.dto.response;
+package org.nlu.backend.dto.request.auth;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -8,8 +8,7 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class AuthenticationResponse {
-    String token;
-    boolean authenticated;
-    UserResponse user;
+public class AuthenticationRequest {
+    String email;
+    String password;
 }
