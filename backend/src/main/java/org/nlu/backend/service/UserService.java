@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.nlu.backend.dto.request.UserCreationRequest;
+import org.nlu.backend.dto.request.user.UserUpdateRequest;
 import org.nlu.backend.dto.response.UserResponse;
 import org.nlu.backend.entity.Role;
 import org.nlu.backend.entity.User;
@@ -13,6 +14,7 @@ import org.nlu.backend.mapper.UserMapper;
 import org.nlu.backend.repository.RoleRepository;
 import org.nlu.backend.repository.UserRepository;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -51,6 +53,28 @@ public class UserService {
     public List<UserResponse> getAllUsers() {
         List<User> users = userRepository.findAll();
         return users.stream().map(userMapper::toUserResponse).toList();
+    }
+
+    public UserResponse updateUser(UserUpdateRequest request) {
+        var context = SecurityContextHolder.getContext();
+        String email = context.getAuthentication().getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.EMAIL_NOT_EXISTED));
+
+        user.setFullName(request.getFullName());
+        user.setAddress(request.getAddress());
+        user.setPhone(request.getPhone());
+
+        return userMapper.toUserResponse(userRepository.save(user));
+    }
+
+    public UserResponse getProfile() {
+        var context = SecurityContextHolder.getContext();
+        String email = context.getAuthentication().getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.EMAIL_NOT_EXISTED));
+        return userMapper.toUserResponse(user);
     }
 
 }
