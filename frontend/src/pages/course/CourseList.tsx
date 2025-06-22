@@ -61,7 +61,7 @@ const CourseList = () => {
             sellerId: null,
             sortBy: backendSortBy,
             sortDirection,
-            status: null
+            status: 'PUBLISHED'
         };
     };
 
