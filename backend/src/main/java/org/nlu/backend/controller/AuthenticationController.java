@@ -1,11 +1,13 @@
 package org.nlu.backend.controller;
 
+import com.nimbusds.jose.JOSEException;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.nlu.backend.dto.ApiResponse;
 import org.nlu.backend.dto.request.auth.AuthenticationRequest;
 import org.nlu.backend.dto.request.auth.ForgotPasswordRequest;
+import org.nlu.backend.dto.request.auth.LogoutRequest;
 import org.nlu.backend.dto.request.auth.NewPasswordRequest;
 import org.nlu.backend.dto.response.UserResponse;
 import org.nlu.backend.dto.response.auth.AuthenticationResponse;
@@ -13,6 +15,8 @@ import org.nlu.backend.dto.response.auth.ForgotPasswordResponse;
 import org.nlu.backend.service.AuthenticationService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.text.ParseException;
 
 @RestController
 @RequestMapping("/auth")
@@ -28,6 +32,12 @@ public class AuthenticationController {
                 .body(ApiResponse.<AuthenticationResponse>builder()
                         .data(authenticationService.authenicate(request))
                         .build());
+    }
+
+    @PostMapping("/logout")
+    ResponseEntity<ApiResponse<Void>> logout(@RequestBody LogoutRequest request) throws ParseException, JOSEException {
+        authenticationService.logout(request);
+        return ResponseEntity.ok().body(ApiResponse.<Void>builder().build());
     }
 
     @PostMapping("/forgot-password")

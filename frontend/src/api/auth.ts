@@ -17,4 +17,13 @@ export const resetPassword = async (email: string, newPassword: string) => {
     newPassword
   });
   return response.data;
+};
+
+export interface LogoutRequest {
+  token: string;
+}
+
+export const logout = async (token: string) => {
+  const response = await axios.post(`${API_BASE_URL}/auth/logout`, { token });
+  return response.data;
 }; 
