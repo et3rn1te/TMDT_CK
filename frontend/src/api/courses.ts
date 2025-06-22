@@ -8,6 +8,7 @@ import {
 } from '../types/courseTypes.ts'; // Tạo các interface/type này nếu chưa có
 import {ApiResponse} from "../types/commonTypes.ts";
 import {API_BASE_URL} from '../config';
+import axios from 'axios';
 
 // Hàm helper để xử lý phản hồi API
 async function handleApiResponse<T>(response: Response): Promise<T> {
@@ -148,5 +149,10 @@ export const courseApi = {
         const response = await fetch(url);
         const apiResponse = await handleApiResponse<ApiResponse<CourseSummaryResponse[]>>(response);
         return apiResponse.data;
+    },
+
+    getEnrolledCourses: async () => {
+        const response = await axios.get<EnrolledCourse[]>(`${API_BASE_URL}/enrollments/enrolled-courses`);
+        return response.data;
     },
 };

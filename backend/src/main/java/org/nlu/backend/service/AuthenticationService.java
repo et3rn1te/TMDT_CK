@@ -13,14 +13,17 @@ import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
 import org.nlu.backend.dto.request.auth.AuthenticationRequest;
 import org.nlu.backend.dto.request.auth.ForgotPasswordRequest;
+import org.nlu.backend.dto.request.auth.LogoutRequest;
 import org.nlu.backend.dto.request.auth.NewPasswordRequest;
 import org.nlu.backend.dto.response.auth.AuthenticationResponse;
 import org.nlu.backend.dto.response.UserResponse;
 import org.nlu.backend.dto.response.auth.ForgotPasswordResponse;
+import org.nlu.backend.entity.InvalidatedToken;
 import org.nlu.backend.entity.User;
 import org.nlu.backend.exception.AppException;
 import org.nlu.backend.exception.ErrorCode;
 import org.nlu.backend.mapper.UserMapper;
+import org.nlu.backend.repository.InvalidatedTokenRepository;
 import org.nlu.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -44,6 +47,7 @@ public class AuthenticationService {
     UserRepository userRepository;
     PasswordEncoder passwordEncoder;
     EmailService emailService;
+    InvalidatedTokenRepository invalidatedTokenRepository;
     private final UserMapper userMapper;
 
     @NonFinal
@@ -72,6 +76,19 @@ public class AuthenticationService {
                 .authenticated(true)
                 .user(userResponse)
                 .build();
+    }
+
+    public void logout(LogoutRequest request) throws ParseException, JOSEException {
+        var signToken = verifyToken(request.getToken());
+
+        String jit = signToken.getJWTClaimsSet().getJWTID();
+        Date expiryDate = signToken.getJWTClaimsSet().getExpirationTime();
+
+        InvalidatedToken invalidatedToken = InvalidatedToken.builder()
+                .id(jit)
+                .expiryTime(expiryDate)
+                .build();
+        invalidatedTokenRepository.save(invalidatedToken);
     }
 
 

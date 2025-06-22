@@ -1,12 +1,20 @@
 package org.nlu.backend.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.nlu.backend.dto.response.course.EnrolledCourseResponse;
+import org.nlu.backend.service.enrollment.IEnrollmentService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.User;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/enrollments")
 @RequiredArgsConstructor
 public class EnrollmentController {
+    IEnrollmentService enrollmentService;
 //    private final IEnrollmentService enrollmentService;
 //
 //    //-------------- GET MAPPING --------------
@@ -65,6 +73,12 @@ public class EnrollmentController {
 //                        .message("Hủy đăng ký khóa học thành công")
 //                        .build());
 //    }
+
+    @GetMapping("/enrolled-courses")
+    public ResponseEntity<List<EnrolledCourseResponse>> getEnrolledCourses() {
+        List<EnrolledCourseResponse> enrolledCourses = enrollmentService.getEnrolledCourses();
+        return ResponseEntity.ok(enrolledCourses);
+    }
 
 }
 

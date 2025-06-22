@@ -18,6 +18,8 @@ import CourseComplaint from './pages/course/CourseComplaint.tsx';
 import CourseList from './pages/course/CourseList';
 import ManageCourses from './pages/admin/ManageCourses'; 
 import AddCourse from './pages/admin/AddCourse.tsx';
+import ManageLessons from './pages/admin/ManageLessons';
+import AddLesson from './pages/admin/AddLesson';
 import Forbidden from './pages/error/Forbidden.tsx';
 import NotFound from './pages/error/NotFound.tsx';
 
@@ -72,6 +74,25 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['ADMIN', 'SELLER']}>
                 <ManageCourses />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Lesson Management Routes */}
+          <Route
+            path="/manage-courses/:courseId/lessons"
+            element={
+              <ProtectedRoute allowedRoles={['ADMIN', 'SELLER']}>
+                <ManageLessons />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/manage-courses/:courseId/lessons/add"
+            element={
+              <ProtectedRoute allowedRoles={['ADMIN', 'SELLER']}>
+                <AddLesson />
               </ProtectedRoute>
             }
           />

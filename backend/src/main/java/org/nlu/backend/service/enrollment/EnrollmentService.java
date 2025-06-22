@@ -1,22 +1,29 @@
 package org.nlu.backend.service.enrollment;
 
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.nlu.backend.dto.request.enrollment.CourseEnrollmentRequest;
+import org.nlu.backend.dto.response.course.EnrolledCourseResponse;
 import org.nlu.backend.entity.*;
 import org.nlu.backend.repository.*;
 import org.nlu.backend.exception.*;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class EnrollmentService implements IEnrollmentService {
-    private final CourseRepository courseRepository;
-    private final UserRepository userRepository;
-    private final OrderRepository orderRepository;
-    private final CourseEnrollmentRepository enrollmentRepository;
+    CourseRepository courseRepository;
+    UserRepository userRepository;
+    OrderRepository orderRepository;
+    CourseEnrollmentRepository enrollmentRepository;
 
     @Transactional
     public void enrollCourse(Long userId, CourseEnrollmentRequest request) {
@@ -48,6 +55,37 @@ public class EnrollmentService implements IEnrollmentService {
         enrollment.setOrder(order);
         enrollment.setEnrollmentDate(LocalDateTime.now());
         enrollmentRepository.save(enrollment);
+    }
+    
+    @Override
+    public List<EnrolledCourseResponse> getEnrolledCourses() {
+        var context = SecurityContextHolder.getContext();
+        String email = context.getAuthentication().getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.UNAUTHENTICATED));
+
+        List<CourseEnrollment> enrollments = enrollmentRepository.findByUserId(user.getId());
+        return enrollments.stream()
+                .map(enrollment -> {
+                    Course course = enrollment.getCourse();
+                    return EnrolledCourseResponse.builder()
+                            .id(course.getId())
+                            .title(course.getTitle())
+                            .description(course.getDescription())
+                            .thumbnail(course.getThumbnailUrl())
+                            .price(course.getPrice())
+                            .instructorName(course.getSeller().getFullName())
+                            .enrollmentDate(enrollment.getCreatedAt())
+                            .progress(calculateProgress(enrollment))
+                            .status(enrollment.getCourse().getStatus())
+                            .build();
+                })
+                .collect(Collectors.toList());
+    }
+
+    private Double calculateProgress(CourseEnrollment enrollment) {
+        // TODO: Implement progress calculation based on completed lessons
+        return 0.0;
     }
 }
 

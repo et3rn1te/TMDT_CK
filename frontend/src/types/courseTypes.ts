@@ -77,3 +77,15 @@ export interface CourseResponse {
     thumbnailUrl: string;
     videoUrl: string;
 }
+
+export interface EnrolledCourse {
+    id: number;
+    title: string;
+    description: string;
+    thumbnail: string;
+    price: string;
+    instructorName: string;
+    enrollmentDate: string;
+    progress: number;
+    status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+}

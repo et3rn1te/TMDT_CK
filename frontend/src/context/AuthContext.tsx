@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { logout as logoutApi } from '../api/auth';
 
 // Define the shape of the authentication context
 interface AuthContextType {
@@ -8,7 +9,7 @@ interface AuthContextType {
   userRoles: string[]; // Added for handling multiple roles if needed
   loading: boolean;
   login: (email: string, token: string, roles: string[]) => void; // Added roles to login
-  logout: () => void;
+  logout: () => Promise<void>;
 }
 
 // Create the context with a default undefined value
@@ -23,8 +24,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState<boolean>(true); // To indicate if auth state is being loaded
 
   useEffect(() => {
-    // On component mount, try to load auth state from localStorage or sessionStorage
-    const storedAuth = localStorage.getItem('auth'); // Or sessionStorage
+    // On component mount, try to load auth state from localStorage
+    const storedAuth = localStorage.getItem('auth');
     if (storedAuth) {
       try {
         const { email, token, roles } = JSON.parse(storedAuth);
@@ -37,7 +38,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       } catch (e) {
         console.error("Failed to parse stored auth data", e);
-        logout(); // Clear invalid data
+        handleLogout(); // Clear invalid data
       }
     }
     setLoading(false); // Authentication state loaded
@@ -51,14 +52,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUserRole(roles.length > 0 ? roles[0] : null); // Set primary role
     // Store auth state (e.g., token, email, roles) in localStorage or sessionStorage
     localStorage.setItem('auth', JSON.stringify({ email, token, roles }));
+    localStorage.setItem('token', token); // Store token separately for API calls
   };
 
-  const logout = () => {
+  const handleLogout = () => {
     setIsAuthenticated(false);
     setUserEmail(null);
     setUserRole(null);
     setUserRoles([]);
-    localStorage.removeItem('auth'); // Clear stored auth state
+    localStorage.removeItem('auth');
+    localStorage.removeItem('token');
+  };
+
+  const logout = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (token) {
+        await logoutApi(token);
+      }
+    } catch (error) {
+      console.error('Error during logout:', error);
+    } finally {
+      handleLogout();
+    }
   };
 
   return (
