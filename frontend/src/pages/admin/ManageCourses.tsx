@@ -381,6 +381,13 @@ const ManageCourse = () => {
                                                         </button>
                                                     </Link>
 
+                                                    <Link to={`/manage-courses/${course.id}/lessons`} className="flex-1">
+                                                        <button className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-purple-600 bg-purple-50 hover:bg-purple-100 rounded-xl transition-colors">
+                                                            <BookOpen size={16}/>
+                                                            Quản lý bài học
+                                                        </button>
+                                                    </Link>
+
                                                     {userRole === 'ADMIN' && course.status === 'PENDING_APPROVAL' && (
                                                         <>
                                                             <button

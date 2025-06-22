@@ -31,6 +31,8 @@ public enum ErrorCode {
     OTP_NOT_VALID(1020, "OTP not valid", HttpStatus.BAD_REQUEST),
     OTP_IS_USED(1021, "OTP is used", HttpStatus.BAD_REQUEST),
     OTP_IS_EXPIRY(10019, "OTP is no longer to used", HttpStatus.BAD_REQUEST),
+    LESSON_NOT_FOUND(1022, "Lesson not found", HttpStatus.NOT_FOUND),
+    INVALID_LESSON_ORDER(1023, "Invalid lesson order", HttpStatus.BAD_REQUEST),
     ;
 
     private int code;
