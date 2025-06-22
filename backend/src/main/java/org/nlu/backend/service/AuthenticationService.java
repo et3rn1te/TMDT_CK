@@ -17,12 +17,10 @@ import org.nlu.backend.dto.request.auth.NewPasswordRequest;
 import org.nlu.backend.dto.response.auth.AuthenticationResponse;
 import org.nlu.backend.dto.response.UserResponse;
 import org.nlu.backend.dto.response.auth.ForgotPasswordResponse;
-import org.nlu.backend.entity.OtpToken;
 import org.nlu.backend.entity.User;
 import org.nlu.backend.exception.AppException;
 import org.nlu.backend.exception.ErrorCode;
 import org.nlu.backend.mapper.UserMapper;
-import org.nlu.backend.repository.OtpTokenRepository;
 import org.nlu.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -45,7 +43,6 @@ public class AuthenticationService {
 
     UserRepository userRepository;
     PasswordEncoder passwordEncoder;
-    OtpTokenRepository otpTokenRepository;
     EmailService emailService;
     private final UserMapper userMapper;
 
@@ -139,13 +136,9 @@ public class AuthenticationService {
 
         String otp = String.format("%06d", new Random().nextInt(999999)); // generate OTP
 
-        OtpToken token = OtpToken.builder()
-                .email(user.getEmail())
-                .otp(otp)
-                .expiryTime(LocalDateTime.now().plusMinutes(5))
-                .used(false)
-                .build();
-        otpTokenRepository.save(token);
+        user.setResetPasswordToken(otp);
+        user.setResetPasswordExpires(LocalDateTime.now().plusMinutes(5));
+        userRepository.save(user); // Save the changes to database
 
         emailService.sendMail(request.getEmail(), "Mã OTP đặt lại mật khẩu",
                 "Mã OTP của bạn là: " + otp + " có hiệu lực trong 5 phút!");
@@ -156,19 +149,23 @@ public class AuthenticationService {
     }
 
     public String verifyOtp(String email, String otp) {
-        OtpToken otpToken = otpTokenRepository.findByEmailAndOtp(email, otp)
-                .orElseThrow(() -> new AppException(ErrorCode.OTP_NOT_VALID));
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.UNAUTHENTICATED));
 
-        if (otpToken.isUsed())
+        if (user.getResetPasswordToken() == null || user.getResetPasswordToken().isEmpty())
             throw new AppException(ErrorCode.OTP_IS_USED);
 
-        if (otpToken.getExpiryTime().isBefore(LocalDateTime.now()))
+        if (user.getResetPasswordExpires().isBefore(LocalDateTime.now()))
             throw new AppException(ErrorCode.OTP_IS_EXPIRY);
 
-        otpToken.setUsed(true);
-        otpTokenRepository.save(otpToken);
+        if (!user.getResetPasswordToken().equals(otp))
+            throw new AppException(ErrorCode.OTP_NOT_VALID);
 
-        return otpToken.getEmail();
+        user.setResetPasswordToken(null);
+        user.setResetPasswordExpires(null);
+        userRepository.save(user);
+
+        return user.getEmail();
     }
 
     public UserResponse newPassword(NewPasswordRequest request) {

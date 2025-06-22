@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.nlu.backend.dto.ApiResponse;
 import org.nlu.backend.dto.request.UserCreationRequest;
+import org.nlu.backend.dto.request.user.UserUpdateRequest;
 import org.nlu.backend.dto.response.UserResponse;
 import org.nlu.backend.service.UserService;
 import org.springframework.http.ResponseEntity;
@@ -37,4 +38,19 @@ public class UserController {
                         .build());
     }
 
+    @PutMapping()
+    ResponseEntity<ApiResponse<UserResponse>> updateUser(@RequestBody UserUpdateRequest request) {
+        return ResponseEntity.ok()
+                .body(ApiResponse.<UserResponse>builder()
+                        .data(userService.updateUser(request))
+                        .build());
+    }
+
+    @GetMapping("/profile")
+    ResponseEntity<ApiResponse<UserResponse>> getUserProfile() {
+        return ResponseEntity.ok()
+                .body(ApiResponse.<UserResponse>builder()
+                        .data(userService.getProfile())
+                        .build());
+    }
 }
