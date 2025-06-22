@@ -4,7 +4,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.nlu.backend.dto.request.UserCreationRequest;
 import org.nlu.backend.dto.response.UserResponse;
-import org.nlu.backend.dto.response.seller.SellerResponse;
+import org.nlu.backend.dto.response.user.SellerResponse;
 import org.nlu.backend.entity.Role;
 import org.nlu.backend.entity.User;
 

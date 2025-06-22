@@ -7,15 +7,13 @@ interface FilterSidebarProps {
     selectedPriceTypes: string[];
     onLevelChange: (level: string) => void;
     onPriceTypeChange: (priceType: string) => void;
-    allLevels: LevelResponse[]; // THÊM DÒNG NÀY VÀO INTERFACE PROPS
+    allLevels: LevelResponse[];
 }
 
 const FilterSidebar: React.FC<FilterSidebarProps> = ({
                                                          isMobile = false,
                                                          selectedLevels,
-                                                         selectedPriceTypes,
                                                          onLevelChange,
-                                                         onPriceTypeChange,
                                                          allLevels // Destructure allLevels từ props
                                                      }) => {
     const idPrefix = isMobile ? 'mobile-' : '';

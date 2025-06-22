@@ -43,6 +43,21 @@ const CourseDetail = () => {
     }
   };
 
+  const getLocalizedLevel = (level: string): string => {
+    switch (level) {
+      case 'Beginner':
+        return 'Cơ bản';
+      case 'Intermediate':
+        return 'Trung cấp';
+      case 'Advanced':
+        return 'Nâng cao';
+      case 'All Levels':
+        return 'Tất cả cấp độ';
+      default:
+        return level;
+    }
+  };
+
   useEffect(() => {
     const fetchCourseDetail = async () => {
       if (!courseId) {
@@ -130,7 +145,7 @@ const CourseDetail = () => {
                     {/* Last Updated, Language, Duration - NOT in CourseResponse.java, removed display */}
                     <div className="flex items-center mr-4 mb-2">
                       <BarChart2 className="h-4 w-4 mr-1" />
-                      <span>{course.level.name}</span>
+                      <span>{getLocalizedLevel(course.level.name)}</span>
                     </div>
                     <div className="flex items-center mb-2">
                       <FileText className="h-4 w-4 mr-1" />
