@@ -26,6 +26,7 @@ public enum ErrorCode {
     ALREADY_ENROLLED(1016, "User already enrolled", HttpStatus.CONFLICT),
     ACCESS_DENIED(1017, "Access denied", HttpStatus.FORBIDDEN),
     INVALID_COURSE_STATUS(1018, "Invalid course status", HttpStatus.BAD_REQUEST),
+    PERMISSION_DENIED(1018, "Permission denied", HttpStatus.FORBIDDEN),
     ;
 
     private int code;

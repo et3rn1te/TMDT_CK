@@ -64,39 +64,13 @@ public class CourseService implements ICourseService {
                     .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
             if (!course.getSeller().getId().equals(seller.getId())) {
-                throw new AppException(ErrorCode.ACCESS_DENIED); // Cần định nghĩa lỗi này nếu chưa có
+                throw new AppException(ErrorCode.ACCESS_DENIED);
             }
         }
 
         courseMapper.updateCourseFromRequest(request, course);
         course = courseRepository.save(course);
         return courseMapper.toCourseResponse(course);
-    }
-
-    @Override
-    @PreAuthorize("hasAnyRole('ADMIN','SELLER')")
-    public void updateCourseStatus(Long id, CourseStatusUpdateRequest request) {
-        Course course = courseRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
-
-        // Kiểm tra quyền: ADMIN có thể thay đổi trạng thái bất kỳ, SELLER chỉ thay đổi của mình
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication.getAuthorities().stream().noneMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
-            String currentSellerEmail = authentication.getName();
-            User seller = userRepository.findByEmail(currentSellerEmail)
-                    .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-
-            if (!course.getSeller().getId().equals(seller.getId())) {
-                throw new AppException(ErrorCode.ACCESS_DENIED);
-            }
-            // Logic đặc biệt cho SELLER: có thể không cho phép SELLER tự phê duyệt hoặc chuyển sang trạng thái APPROVED
-            // Ví dụ: if (request.getStatus().equals("APPROVED") || request.getStatus().equals("REJECTED")) {
-            //             throw new AppException(ErrorCode.PERMISSION_DENIED);
-            //         }
-        }
-
-        courseMapper.updateCourseStatusFromRequest(request, course);
-        courseRepository.save(course);
     }
 
     @Override
@@ -229,29 +203,67 @@ public class CourseService implements ICourseService {
     }
 
     @Override
-    @PreAuthorize("hasRole('ADMIN')") // Chỉ ADMIN mới có quyền phê duyệt
-    public void approveCourse(Long id) {
+    @PreAuthorize("hasAnyRole('ADMIN','SELLER')")
+    @Transactional
+    public void updateCourseStatus(Long id, CourseStatusUpdateRequest request) {
         Course course = courseRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
-        // Kiểm tra trạng thái hiện tại nếu cần (ví dụ: chỉ phê duyệt nếu đang ở trạng thái PENDING)
-        if (!"PENDING".equals(course.getStatus())) { // Giả định trạng thái là String "PENDING"
-            throw new AppException(ErrorCode.INVALID_COURSE_STATUS); // Cần định nghĩa lỗi này
+
+        // Kiểm tra quyền: ADMIN có thể thay đổi trạng thái bất kỳ, SELLER chỉ thay đổi của mình
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        if (!isAdmin) {
+            String currentSellerEmail = authentication.getName();
+            User seller = userRepository.findByEmail(currentSellerEmail)
+                    .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+            Course.CourseStatus currentStatus = course.getStatus(); // Lấy trạng thái hiện tại
+            Course.CourseStatus requestedStatus = Course.CourseStatus.valueOf(String.valueOf(request.getStatus())); // Chuyển đổi trạng thái yêu cầu sang enum
+
+            if (!course.getSeller().getId().equals(seller.getId())) {
+                throw new AppException(ErrorCode.ACCESS_DENIED);
+            }
+
+            // Ngăn SELLER PUBLISH hoặc REJECT khóa học
+            if (requestedStatus == Course.CourseStatus.PUBLISHED || requestedStatus == Course.CourseStatus.REJECTED) {
+                throw new AppException(ErrorCode.PERMISSION_DENIED); // Hoặc lỗi chi tiết hơn
+            }
         }
-        course.setStatus(Course.CourseStatus.valueOf("APPROVED")); // Cập nhật trạng thái thành APPROVED
+
+        courseMapper.updateCourseStatusFromRequest(request, course);
         courseRepository.save(course);
     }
 
     @Override
-    @PreAuthorize("hasRole('ADMIN')") // Chỉ ADMIN mới có quyền từ chối
+    @PreAuthorize("hasRole('ADMIN')")
+    @Transactional
+    public void approveCourse(Long id) {
+        Course course = courseRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
+
+        // Kiểm tra trạng thái hiện tại: Chỉ phê duyệt nếu khóa học đang ở trạng thái PENDING_APPROVAL
+        if (course.getStatus() != Course.CourseStatus.PENDING_APPROVAL) {
+            throw new AppException(ErrorCode.INVALID_COURSE_STATUS); // Cần định nghĩa lỗi này
+        }
+
+        course.setStatus(Course.CourseStatus.PUBLISHED); // Sử dụng Enum trực tiếp
+        courseRepository.save(course);
+    }
+
+    @Override
+    @PreAuthorize("hasRole('ADMIN')")
+    @Transactional
     public void rejectCourse(Long id) {
         Course course = courseRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
 
-        // Kiểm tra trạng thái hiện tại nếu cần
-        if (!"PENDING".equals(course.getStatus())) {
-            throw new AppException(ErrorCode.INVALID_COURSE_STATUS);
+        // Kiểm tra trạng thái hiện tại: Chỉ từ chối nếu khóa học đang ở trạng thái PENDING_APPROVAL
+        if (course.getStatus() != Course.CourseStatus.PENDING_APPROVAL) {
+            throw new AppException(ErrorCode.INVALID_COURSE_STATUS); // Cần định nghĩa lỗi này
         }
-        course.setStatus(Course.CourseStatus.valueOf("REJECTED")); // Cập nhật trạng thái thành REJECTED
+
+        course.setStatus(Course.CourseStatus.REJECTED); // Sử dụng Enum trực tiếp
         courseRepository.save(course);
     }
 
@@ -271,7 +283,6 @@ public class CourseService implements ICourseService {
         return courseMapper.toCourseSummaryResponses(courses);
     }
 
-    // Hàm này sẽ xây dựng điều kiện filter từ request
     private Specification<Course> buildCourseSpecification(CourseFilterRequest request) {
         return (root, query, cb) -> {
             Predicate predicate = cb.conjunction();
