@@ -35,6 +35,7 @@ const RegisteredCourses: React.FC = () => {
       try {
         const courses = await courseApi.getEnrolledCourses();
         setEnrolledCourses(courses);
+        console.log(courses);
       } catch (error) {
         console.error('Error fetching enrolled courses:', error);
       } finally {
@@ -56,7 +57,7 @@ const RegisteredCourses: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <h1 className="text-2xl font-bold text-gray-900 mb-6">Khóa học của tôi</h1>
 
-          {enrolledCourses.length === 0 ? (
+          {enrolledCourses && enrolledCourses.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-gray-600 mb-4">Bạn chưa đăng ký khóa học nào.</p>
               <Link to="/courses" className="text-blue-600 hover:text-blue-800">
@@ -65,7 +66,7 @@ const RegisteredCourses: React.FC = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {enrolledCourses.map((course) => (
+              {enrolledCourses && enrolledCourses.map((course) => (
                 <div key={course.id} className="bg-white rounded-lg shadow-md overflow-hidden">
                   <img src={course.thumbnail} alt={course.title} className="w-full h-48 object-cover" />
                   <div className="p-4">

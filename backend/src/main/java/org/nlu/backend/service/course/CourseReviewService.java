@@ -1,6 +1,9 @@
 package org.nlu.backend.service.course;
 
-import lombok.RequiredArgsConstructor;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import org.nlu.backend.dto.request.course.CourseReviewRequest;
 import org.nlu.backend.dto.response.course.CourseReviewResponse;
 import org.nlu.backend.entity.Course;
@@ -11,9 +14,7 @@ import org.nlu.backend.repository.CourseReviewRepository;
 import org.nlu.backend.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -38,6 +39,13 @@ public class CourseReviewService {
 
         CourseReview saved = reviewRepo.save(review);
         return mapToResponse(saved);
+    }
+    
+    public List<CourseReviewResponse> getAllReviews() {
+        return reviewRepo.findAll()
+                .stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
     }
 
     public List<CourseReviewResponse> getReviewsByCourse(Long courseId) {

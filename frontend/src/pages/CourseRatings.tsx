@@ -2,134 +2,47 @@ import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { Star, Edit, X, BookOpen, User, Calendar, ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react';
+import { courseApi } from '../api/courses';
+import { reviewsApi } from '../api/reviews';
+import { EnrolledCourse, CourseReview } from '../types/courseTypes';
 
-interface Course {
+interface User {
   id: number;
-  title: string;
-  instructor: string;
-  image: string;
-  description: string;
-  enrollmentDate: string;
-  category: string;
-  level: string;
-}
-
-interface CourseReview {
-  id: number;
-  courseId: number;
-  userId: number;
-  userName: string;
-  userAvatar: string;
-  rating: number;
-  comment: string;
-  createdAt: string;
+  email: string;
 }
 
 const CourseRatings = () => {
-  const [courses, setCourses] = useState<Course[]>([]);
+  // Mock user for now - in a real app, get this from auth context
+  const user: User = { id: 1, email: 'user@example.com' };
+  
+  const [courses, setCourses] = useState<EnrolledCourse[]>([]);
   const [reviews, setReviews] = useState<CourseReview[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [selectedCourse, setSelectedCourse] = useState<EnrolledCourse | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewComment, setReviewComment] = useState('');
   const [hoveredRating, setHoveredRating] = useState(0);
   const coursesPerPage = 3;
 
-  // Mock data - replace with actual API call
+  // Load enrolled courses and reviews
   useEffect(() => {
-    setTimeout(() => {
-      const mockCourses = [
-        {
-          id: 1,
-          title: 'Complete English Grammar Course',
-          instructor: 'John Smith',
-          image: 'https://play-lh.googleusercontent.com/RDaDkf8_3otfI-Yoe-uIue0TckLkKlbu9pMOHE4bQcJIkwEcLuD6Fr-deph5DForNKQ',
-          description: 'A comprehensive guide to English grammar for all levels.',
-          enrollmentDate: '2023-06-01T10:15:00Z',
-          category: 'Grammar',
-          level: 'Intermediate'
-        },
-        {
-          id: 2,
-          title: 'English for Business Communication',
-          instructor: 'Sarah Johnson',
-          image: 'https://img-c.udemycdn.com/course/240x135/1094556_244e_3.jpg',
-          description: 'Learn professional English for business settings and corporate environments.',
-          enrollmentDate: '2023-04-12T08:30:00Z',
-          category: 'Business English',
-          level: 'Advanced'
-        },
-        {
-          id: 3,
-          title: 'IELTS Preparation Masterclass',
-          instructor: 'David Wong',
-          image: 'https://img-c.udemycdn.com/course/240x135/3252778_7213.jpg',
-          description: 'Comprehensive preparation for the IELTS exam with practice tests.',
-          enrollmentDate: '2023-05-15T14:45:00Z',
-          category: 'Exam Preparation',
-          level: 'Advanced'
-        },
-        {
-          id: 4,
-          title: 'English Pronunciation Made Simple',
-          instructor: 'Emma Thompson',
-          image: 'https://img-c.udemycdn.com/course/240x135/1984422_1063_3.jpg',
-          description: 'Improve your English pronunciation with practical exercises.',
-          enrollmentDate: '2023-06-05T11:20:00Z',
-          category: 'Pronunciation',
-          level: 'Beginner'
-        },
-        {
-          id: 5,
-          title: 'Advanced English Vocabulary',
-          instructor: 'Michael Brown',
-          image: 'https://img-c.udemycdn.com/course/240x135/1342498_a2be_4.jpg',
-          description: 'Expand your English vocabulary with advanced terms and expressions.',
-          enrollmentDate: '2023-06-18T13:45:00Z',
-          category: 'Vocabulary',
-          level: 'Advanced'
-        }
-      ];
-
-      const mockReviews = [
-        {
-          id: 1,
-          courseId: 1,
-          userId: 101,
-          userName: 'Nguyễn Văn A',
-          userAvatar: 'https://randomuser.me/api/portraits/men/32.jpg',
-          rating: 5,
-          comment: 'Khóa học rất hay và dễ hiểu. Giáo viên giảng dạy tận tâm.',
-          createdAt: '2023-07-15T08:30:00Z'
-        },
-        {
-          id: 2,
-          courseId: 2,
-          userId: 102,
-          userName: 'Trần Thị B',
-          userAvatar: 'https://randomuser.me/api/portraits/women/44.jpg',
-          rating: 4,
-          comment: 'Nội dung phong phú, giúp tôi cải thiện kỹ năng giao tiếp trong công việc.',
-          createdAt: '2023-06-20T14:45:00Z'
-        },
-        {
-          id: 3,
-          courseId: 3,
-          userId: 103,
-          userName: 'Lê Văn C',
-          userAvatar: 'https://randomuser.me/api/portraits/men/67.jpg',
-          rating: 5,
-          comment: 'Giáo trình chuẩn, bài tập phong phú, giúp tôi chuẩn bị tốt cho kỳ thi IELTS.',
-          createdAt: '2023-08-05T10:15:00Z'
-        }
-      ];
-
-      setCourses(mockCourses);
-      setReviews(mockReviews);
-      setLoading(false);
-    }, 1000);
+    const fetchData = async () => {
+      try {
+        const enrolledCourses = await courseApi.getEnrolledCourses();
+        const allReviews = await reviewsApi.getAllReviews();
+        
+        setCourses(enrolledCourses);
+        setReviews(allReviews);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchData();
   }, []);
 
   // Format date
@@ -144,14 +57,14 @@ const CourseRatings = () => {
   // Pagination
   const indexOfLastCourse = currentPage * coursesPerPage;
   const indexOfFirstCourse = indexOfLastCourse - coursesPerPage;
-  const currentCourses = courses.slice(indexOfFirstCourse, indexOfLastCourse);
-  const totalPages = Math.ceil(courses.length / coursesPerPage);
+  const currentCourses = (courses ??[]).slice(indexOfFirstCourse, indexOfLastCourse);
+  const totalPages = Math.ceil((courses ??[]).length / coursesPerPage);
 
   // Open review modal
-  const openReviewModal = (course: Course) => {
+  const openReviewModal = (course: EnrolledCourse) => {
     setSelectedCourse(course);
     // Check if user has already reviewed this course
-    const existingReview = reviews.find(review => review.courseId === course.id && review.userId === 101); // Assume current user id is 101
+    const existingReview = reviews.find(review => review.courseId === course.id && review.userId === user?.id);
     if (existingReview) {
       setReviewRating(existingReview.rating);
       setReviewComment(existingReview.comment);
@@ -172,40 +85,39 @@ const CourseRatings = () => {
   };
 
   // Submit review
-  const submitReview = () => {
-    if (!selectedCourse || reviewRating === 0) return;
+  const submitReview = async () => {
+    if (!selectedCourse || reviewRating === 0 || !user) return;
     
-    // Check if user has already reviewed this course
-    const existingReviewIndex = reviews.findIndex(
-      review => review.courseId === selectedCourse.id && review.userId === 101 // Assume current user id is 101
-    );
-    
-    if (existingReviewIndex >= 0) {
-      // Update existing review
-      const updatedReviews = [...reviews];
-      updatedReviews[existingReviewIndex] = {
-        ...updatedReviews[existingReviewIndex],
-        rating: reviewRating,
-        comment: reviewComment,
-        createdAt: new Date().toISOString()
-      };
-      setReviews(updatedReviews);
-    } else {
-      // Add new review
-      const newReview: CourseReview = {
-        id: reviews.length + 1,
+    try {
+      const reviewData = {
         courseId: selectedCourse.id,
-        userId: 101, // Assume current user id is 101
-        userName: 'Nguyễn Văn A', // Assume current user name
-        userAvatar: 'https://randomuser.me/api/portraits/men/32.jpg', // Assume current user avatar
+        userId: user.id,
         rating: reviewRating,
-        comment: reviewComment,
-        createdAt: new Date().toISOString()
+        comment: reviewComment
       };
-      setReviews([...reviews, newReview]);
+      
+      const newReview = await reviewsApi.submitReview(reviewData);
+      
+      // Update local state
+      const existingReviewIndex = reviews.findIndex(
+        review => review.courseId === selectedCourse.id && review.userId === user.id
+      );
+      
+      if (existingReviewIndex >= 0) {
+        // Update existing review
+        const updatedReviews = [...reviews];
+        updatedReviews[existingReviewIndex] = newReview;
+        setReviews(updatedReviews);
+      } else {
+        // Add new review
+        setReviews([...reviews, newReview]);
+      }
+      
+      closeReviewModal();
+    } catch (error) {
+      console.error('Error submitting review:', error);
+      // Handle error (show error message)
     }
-    
-    closeReviewModal();
   };
 
   // Get course reviews
@@ -246,7 +158,7 @@ const CourseRatings = () => {
               <div className="grid md:grid-cols-1 gap-6 mb-8">
                 {currentCourses.map(course => {
                   const courseReviews = getCourseReviews(course.id);
-                  const hasReviewed = courseReviews.some(review => review.userId === 101); // Assume current user id is 101
+                  const hasReviewed = courseReviews.some(review => review.userId === user?.id);
                   const averageRating = calculateAverageRating(course.id);
                   
                   return (
@@ -255,7 +167,7 @@ const CourseRatings = () => {
                         <div className="md:w-1/4">
                           <img 
                             className="h-48 w-full object-cover md:h-full md:w-full" 
-                            src={course.image} 
+                            src={course.thumbnail} 
                             alt={course.title} 
                           />
                         </div>
@@ -284,11 +196,7 @@ const CourseRatings = () => {
                           <div className="mb-4">
                             <div className="flex items-center text-sm text-gray-600 mb-1">
                               <User className="mr-1 h-4 w-4" />
-                              <span>Giảng viên: {course.instructor}</span>
-                            </div>
-                            <div className="flex items-center text-sm text-gray-600 mb-1">
-                              <BookOpen className="mr-1 h-4 w-4" />
-                              <span>Danh mục: {course.category} | Cấp độ: {course.level}</span>
+                              <span>Giảng viên: {course.instructorName}</span>
                             </div>
                             <div className="flex items-center text-sm text-gray-600">
                               <Calendar className="mr-1 h-4 w-4" />

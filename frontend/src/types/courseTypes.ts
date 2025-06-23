@@ -89,3 +89,14 @@ export interface EnrolledCourse {
     progress: number;
     status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
 }
+
+export interface CourseReview {
+    id: number;
+    courseId: number;
+    userId: number;
+    userName: string;
+    userAvatar: string;
+    rating: number;
+    comment: string;
+    createdAt: string;
+}
