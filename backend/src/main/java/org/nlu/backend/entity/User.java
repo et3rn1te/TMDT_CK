@@ -14,10 +14,15 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@ToString(exclude = {"roles"})
+@EqualsAndHashCode(exclude = {"roles"})
 public class User extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
+
+    @Column(nullable = false)
+    String fullName;
 
     @Column(unique = true, nullable = false)
     String email;
@@ -25,22 +30,22 @@ public class User extends BaseEntity {
     @Column(nullable = false)
     String password;
 
-    @Column(nullable = false)
-    String fullName;
-
     String phone;
 
     String address;
 
-    @ManyToMany
-    Set<Role> roles;
-
-    boolean isVerified = false;
-
-    @Column(unique = true)
+    @Column(name = "google_id", unique = true)
     String googleId;
 
+    @Column(name = "is_verified", nullable = false)
+    boolean isVerified;
+
+    @Column(name = "reset_password_token")
     String resetPasswordToken;
 
+    @Column(name = "reset_password_expires")
     LocalDateTime resetPasswordExpires;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    Set<Role> roles;
 }

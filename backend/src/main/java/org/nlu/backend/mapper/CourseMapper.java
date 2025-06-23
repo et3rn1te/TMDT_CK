@@ -3,6 +3,7 @@ package org.nlu.backend.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.Named;
 import org.nlu.backend.dto.request.course.CourseCreationRequest;
 import org.nlu.backend.dto.request.course.CourseStatusUpdateRequest;
 import org.nlu.backend.dto.request.course.CourseUpdateRequest;
@@ -39,6 +40,8 @@ public interface CourseMapper {
     @Mapping(source = "thumbnailUrl", target = "thumbnailUrl")
     CourseResponse toCourseResponse(Course course);
 
+
+
     // ENTITY → SUMMARY RESPONSE
     @Mapping(source = "level.name", target = "levelName")
     @Mapping(source = "seller.fullName", target = "sellerName")
@@ -55,5 +58,8 @@ public interface CourseMapper {
     List<CourseSummaryResponse> toCourseSummaryResponses(List<Course> courses);
 
     List<CourseResponse> toCourseResponses(List<Course> courses);
+
+
 }
+
 

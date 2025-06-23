@@ -35,7 +35,7 @@ const Login: React.FC = () => {
                 const userRoles = user?.roles || []; // Lấy mảng vai trò từ user object, mặc định là mảng rỗng nếu không có
                 
                 // Lưu token, email và vai trò vào AuthContext
-                login(userEmailFromResponse, token, userRoles); 
+                login(userEmailFromResponse, token, userRoles,user?.id); 
                 
                 // Điều hướng về trang chủ
                 navigate('/');

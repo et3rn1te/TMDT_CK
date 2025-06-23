@@ -302,45 +302,6 @@ INSERT INTO `orders` VALUES (1,'2025-05-24 16:10:04.150452','2025-05-24 16:10:04
 /*!40000 ALTER TABLE `orders` ENABLE KEYS */;
 UNLOCK TABLES;
 
---
--- Table structure for table `payments`
---
-
-DROP TABLE IF EXISTS `payments`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `payments` (
-  `id` bigint NOT NULL AUTO_INCREMENT,
-  `created_at` datetime(6) NOT NULL,
-  `updated_at` datetime(6) NOT NULL,
-  `amount` decimal(10,2) NOT NULL,
-  `callback_url` varchar(255) DEFAULT NULL,
-  `expired_at` datetime(6) DEFAULT NULL,
-  `gateway_response` varchar(255) DEFAULT NULL,
-  `gateway_transaction_id` varchar(255) DEFAULT NULL,
-  `ipn_url` varchar(255) DEFAULT NULL,
-  `payment_date` datetime(6) DEFAULT NULL,
-  `payment_id` varchar(255) NOT NULL,
-  `payment_method` enum('BANK_TRANSFER','CREDIT_CARD','MOCK','MOMO','VNPAY','ZALOPAY') NOT NULL,
-  `return_url` varchar(255) DEFAULT NULL,
-  `status` enum('COMPLETED','EXPIRED','FAILED','PENDING','REFUNDED') NOT NULL,
-  `order_id` bigint NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `UKt4ffsaqe8d6i83gs100u2y3l1` (`payment_id`),
-  KEY `FK81gagumt0r8y3rmudcgpbk42l` (`order_id`),
-  CONSTRAINT `FK81gagumt0r8y3rmudcgpbk42l` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `payments`
---
-
-LOCK TABLES `payments` WRITE;
-/*!40000 ALTER TABLE `payments` DISABLE KEYS */;
-INSERT INTO `payments` VALUES (3,'2025-05-26 15:27:10.271987','2025-05-26 15:27:11.298657',800000.00,'http://localhost:8080/api/v1/payments/callback','2025-05-26 15:42:10.269421',NULL,'689295b5-0b58-4b78-9d82-93c226f96b7c','http://localhost:8080/api/v1/payments/callback','2025-05-26 15:27:10.269421','689295b5-0b58-4b78-9d82-93c226f96b7c','MOCK','http://localhost:3000/payment/result','PENDING',1),(4,'2025-05-26 15:33:12.106836','2025-05-26 15:33:13.136207',800000.00,'http://localhost:8080/api/v1/payments/callback','2025-05-26 15:48:12.105320',NULL,'e1d59652-1022-4e36-adb1-4d910a8c91b1','http://localhost:8080/api/v1/payments/callback','2025-05-26 15:33:12.105320','e1d59652-1022-4e36-adb1-4d910a8c91b1','MOCK','http://localhost:3000/payment/result','PENDING',1);
-/*!40000 ALTER TABLE `payments` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `roles`

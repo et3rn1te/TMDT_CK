@@ -8,7 +8,7 @@ interface AuthContextType {
   userRole: string | null; // Changed to string for simplicity, assuming single primary role for checks
   userRoles: string[]; // Added for handling multiple roles if needed
   loading: boolean;
-  login: (email: string, token: string, roles: string[]) => void; // Added roles to login
+  login: (email: string, token: string, roles: string[],userId:number) => void; // Added roles to login
   logout: () => Promise<void>;
 }
 
@@ -44,14 +44,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(false); // Authentication state loaded
   }, []);
 
-  const login = (email: string, token: string, roles: string[]) => {
+  const login = (email: string, token: string, roles: string[],userId:number) => {
     setIsAuthenticated(true);
     setUserEmail(email);
     setUserRoles(roles);
     console.log(roles);
     setUserRole(roles.length > 0 ? roles[0] : null); // Set primary role
     // Store auth state (e.g., token, email, roles) in localStorage or sessionStorage
-    localStorage.setItem('auth', JSON.stringify({ email, token, roles }));
+    localStorage.setItem('auth', JSON.stringify({ email, token, roles,userId }));
     localStorage.setItem('token', token); // Store token separately for API calls
   };
 

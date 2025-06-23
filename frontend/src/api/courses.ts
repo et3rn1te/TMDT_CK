@@ -4,7 +4,8 @@ import {
     CourseCreationRequest,
     CourseUpdateRequest,
     CourseStatusUpdateRequest,
-    CourseFilterRequest
+    CourseFilterRequest,
+    EnrolledCourse
 } from '../types/courseTypes.ts'; // Tạo các interface/type này nếu chưa có
 import { EnrolledCourse } from '../types/courseTypes';
 import {ApiResponse} from "../types/commonTypes.ts";
@@ -158,5 +159,12 @@ export const courseApi = {
         });
         const apiResponse = await handleApiResponse<ApiResponse<EnrolledCourse[]>>(response);
         return apiResponse;
+    },
+    
+    // Kiểm tra trạng thái thanh toán khóa học
+    checkPaymentStatus: async (courseId: number, userId: number): Promise<boolean> => {
+        const response = await fetch(`${API_BASE_URL}/payment/check-status/${courseId}?userId=${userId}`);
+        const apiResponse = await handleApiResponse<ApiResponse<boolean>>(response);
+        return apiResponse.data;
     },
 };
