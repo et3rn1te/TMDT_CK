@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { courseApi } from '../../api/courses'; // Import courseApi
 import { CourseResponse } from '../../types/courseTypes'; // Use the shared CourseResponse type
+import { useAuth } from '../../context/AuthContext';
 
 const CourseDetail = () => {
   const { courseId } = useParams<{ courseId: string }>();
@@ -24,11 +25,34 @@ const CourseDetail = () => {
   const [error, setError] = useState<string | null>(null);
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'curriculum' | 'reviews'>('overview');
-
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [userId, setUserId] = useState<number | null>(null);
   // Format price in VND
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
   };
+  useEffect(() => {
+    const fetchIsSubscribed = async () => {
+      const data = await courseApi.checkPaymentStatus(Number(courseId), Number(userId));
+      setIsSubscribed(data);
+    };
+    fetchIsSubscribed();
+  }, [courseId, userId]);
+
+  useEffect(() => {
+    const storedAuth = localStorage.getItem('auth');
+    if (storedAuth) {
+      try {
+        const authData = JSON.parse(storedAuth);
+        // Assuming user ID is stored in auth data, adjust as needed
+        if (authData.userId) {
+          setUserId(authData.userId);
+        }
+      } catch (e) {
+        console.error("Failed to parse stored auth data", e);
+      }
+    }
+  }, []);
 
   // Format date (only if 'lastUpdated' is added to backend DTO later)
   const formatDate = (dateString: string) => {
@@ -169,7 +193,7 @@ const CourseDetail = () => {
                         to={`/payment/${course.id}`}
                         className="block w-full text-center py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700"
                     >
-                      Đăng ký ngay
+                      {isSubscribed ? 'Xem khóa học' : 'Đăng ký ngay'}
                     </Link>
                     <p className="text-sm text-center mt-2 text-gray-300">Bảo đảm hoàn tiền trong 30 ngày</p>
                   </div>
@@ -212,7 +236,7 @@ const CourseDetail = () => {
                           to={`/payment/${course.id}`}
                           className="block w-full text-center py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 mb-4"
                       >
-                        Đăng ký ngay
+                        {isSubscribed ? 'Xem khóa học' : 'Đăng ký ngay'}
                       </Link>
                       <p className="text-sm text-center mb-4 text-gray-300">Bảo đảm hoàn tiền trong 30 ngày</p>
                       <div className="space-y-3 text-sm">
