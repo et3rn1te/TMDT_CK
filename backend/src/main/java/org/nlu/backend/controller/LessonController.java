@@ -1,6 +1,8 @@
 package org.nlu.backend.controller;
 
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.nlu.backend.dto.ApiResponse;
 import org.nlu.backend.dto.request.lesson.LessonCreationRequest;
 import org.nlu.backend.dto.request.lesson.LessonUpdateRequest;
@@ -15,8 +17,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/courses/{courseId}/lessons")
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class LessonController {
-    private final ILessonService lessonService;
+    ILessonService lessonService;
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<LessonSummaryResponse>>> getLessonsByCourseId(@PathVariable Long courseId) {

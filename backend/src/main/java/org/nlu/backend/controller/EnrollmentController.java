@@ -1,6 +1,8 @@
 package org.nlu.backend.controller;
 
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.nlu.backend.dto.response.course.EnrolledCourseResponse;
 import org.nlu.backend.service.enrollment.IEnrollmentService;
 import org.springframework.http.ResponseEntity;
@@ -13,10 +15,10 @@ import java.util.List;
 @RestController
 @RequestMapping("/enrollments")
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class EnrollmentController {
     IEnrollmentService enrollmentService;
-//    private final IEnrollmentService enrollmentService;
-//
+
 //    //-------------- GET MAPPING --------------
 //    @GetMapping("/my-courses")
 //    @PreAuthorize("hasRole('USER')") // Chỉ người dùng có vai trò USER mới có thể xem khóa học đã đăng ký của họ
