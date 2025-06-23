@@ -58,9 +58,9 @@ const RegisteredCourses: React.FC = () => {
 
           {enrolledCourses.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-gray-600 mb-4">You haven't enrolled in any courses yet.</p>
+              <p className="text-gray-600 mb-4">Bạn chưa đăng ký khóa học nào.</p>
               <Link to="/courses" className="text-blue-600 hover:text-blue-800">
-                Browse Courses
+                Tìm Khóa Học
               </Link>
             </div>
           ) : (
@@ -90,7 +90,7 @@ const RegisteredCourses: React.FC = () => {
                       </div>
                     </div>
                     <Link
-                      to={`/courses/${course.id}`}
+                      to={`/course/${course.id}`}
                       className="block w-full text-center bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition duration-300"
                     >
                       Continue Learning
