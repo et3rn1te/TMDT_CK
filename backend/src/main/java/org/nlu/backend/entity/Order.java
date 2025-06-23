@@ -14,6 +14,8 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@ToString(exclude = {"orderDetails", "enrollments"})
+@EqualsAndHashCode(exclude = {"orderDetails", "enrollments"})
 public class Order extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

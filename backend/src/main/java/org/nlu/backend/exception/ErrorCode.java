@@ -1,8 +1,9 @@
 package org.nlu.backend.exception;
 
-import lombok.Getter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
+
+import lombok.Getter;
 
 @Getter
 public enum ErrorCode {
@@ -33,6 +34,7 @@ public enum ErrorCode {
     OTP_IS_EXPIRY(10019, "OTP is no longer to used", HttpStatus.BAD_REQUEST),
     LESSON_NOT_FOUND(1022, "Lesson not found", HttpStatus.NOT_FOUND),
     INVALID_LESSON_ORDER(1023, "Invalid lesson order", HttpStatus.BAD_REQUEST),
+    ORDER_NOT_FOUND(1024, "Order not found", HttpStatus.NOT_FOUND),
     ;
 
     private int code;

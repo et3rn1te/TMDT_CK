@@ -26,6 +26,8 @@ import NotFound from './pages/error/NotFound.tsx';
 import { AuthProvider } from './context/AuthContext'; 
 import ProtectedRoute from './routes/ProtectedRoute';
 import EditCourse from "./pages/admin/EditCourse.tsx";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function App() {
   return (
@@ -39,7 +41,7 @@ function App() {
           <Route path="/courses" element={<CourseList />} />
           <Route path="/my-courses" element={<RegisteredCourses />} />
           <Route path="/payment/:courseId" element={<PaymentMethod />} />
-          <Route path="/payment/success" element={<PaymentSuccess />} />
+          <Route path="/payment/success/:courseId" element={<PaymentSuccess />} />
           <Route path="/register" element={<Register />} />
           <Route path="/Login" element={<Login />} />
           <Route path="/CheckEmail" element={<CheckEmail />} />
@@ -102,6 +104,7 @@ function App() {
           {/* Fallback route for any unmatched paths, redirects to NotFound page */}
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <ToastContainer position="top-right" autoClose={5000} />
       </AuthProvider>
     </Router>
   );

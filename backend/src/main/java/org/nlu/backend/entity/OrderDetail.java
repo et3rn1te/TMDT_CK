@@ -13,6 +13,8 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@ToString(exclude = {"order"})
+@EqualsAndHashCode(exclude = {"order"})
 public class OrderDetail {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

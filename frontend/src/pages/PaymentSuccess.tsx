@@ -1,21 +1,43 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useParams, useLocation, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { CheckCircle, Calendar, Play, Download } from 'lucide-react';
+import { CheckCircle, Calendar, Play, Download, AlertTriangle } from 'lucide-react';
+import { courseApi } from '../api/courses';
+import { toast } from 'react-toastify';
+import { API_BASE_URL } from '../config';
+import { getOrderByCourseAndUser } from '../api/orders';
+
+interface OrderDetail {
+  id: number;
+  course: {
+    id: number;
+    title: string;
+    thumbnailUrl: string;
+    sellerName: string;
+  };
+  price: number;
+}
+
+interface Order {
+  id: number;
+  orderNumber: string;
+  createdAt: string;
+  totalAmount: number;
+  status: string;
+  paymentMethod: string;
+  paymentStatus: string;
+  orderDetails: OrderDetail[];
+}
 
 const PaymentSuccess = () => {
+  const { courseId } = useParams();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [orderDetails, setOrderDetails] = useState({
-    orderId: '',
-    date: '',
-    amount: 0,
-    course: {
-      id: 1,
-      title: 'Complete English Grammar Course',
-      image: 'https://img-c.udemycdn.com/course/240x135/2380566_0476.jpg',
-    },
-  });
+  const [error, setError] = useState<string | null>(null);
+  const [order, setOrder] = useState<Order | null>(null);
+  const [userId, setUserId] = useState<number | null>(null);
 
   // Format price in VND
   const formatPrice = (price: number) => {
@@ -33,27 +55,62 @@ const PaymentSuccess = () => {
     });
   };
 
-  // Generate random order ID
-  const generateOrderId = () => {
-    return `ORD-${Math.floor(100000 + Math.random() * 900000)}`;
-  };
-
+  // Get user ID from localStorage
   useEffect(() => {
-    // Simulate API call to get order details
-    setTimeout(() => {
-      setOrderDetails({
-        orderId: generateOrderId(),
-        date: new Date().toISOString(),
-        amount: 399000,
-        course: {
-          id: 1,
-          title: 'Complete English Grammar Course',
-          image: 'https://img-c.udemycdn.com/course/240x135/2380566_0476.jpg',
-        },
-      });
+    const storedAuth = localStorage.getItem('auth');
+    if (storedAuth) {
+      try {
+        const authData = JSON.parse(storedAuth);
+        if (authData.userId) {
+          setUserId(authData.userId);
+        } else {
+          setError("Không thể xác định người dùng. Vui lòng đăng nhập lại.");
+          setLoading(false);
+        }
+      } catch (e) {
+        console.error("Failed to parse stored auth data", e);
+        setError("Lỗi xác thực. Vui lòng đăng nhập lại.");
+        setLoading(false);
+      }
+    } else {
+      setError("Vui lòng đăng nhập để xem thông tin thanh toán.");
       setLoading(false);
-    }, 1000);
+    }
   }, []);
+
+  // Check payment status when userId and courseId are available
+  useEffect(() => {
+    const checkPayment = async () => {
+      if (!userId || !courseId) return;
+
+      try {
+        // First check if payment is completed
+        const isPaid = await courseApi.checkPaymentStatus(Number(courseId), userId);
+        
+        if (!isPaid) {
+          setError("Chưa tìm thấy thông tin thanh toán cho khóa học này. Vui lòng kiểm tra lại sau.");
+          setLoading(false);
+          return;
+        }
+        
+        // If paid, fetch order details
+        const result = await getOrderByCourseAndUser(Number(courseId), userId);
+        console.log(result);
+        if (result) {
+          setOrder(result);
+        } else {
+          setError("Không thể tải thông tin đơn hàng. Vui lòng thử lại sau.");
+        }
+      } catch (err) {
+        console.error("Error checking payment:", err);
+        setError("Đã xảy ra lỗi khi kiểm tra thanh toán. Vui lòng thử lại sau.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkPayment();
+  }, [userId, courseId]);
 
   if (loading) {
     return (
@@ -74,6 +131,87 @@ const PaymentSuccess = () => {
     );
   }
 
+  if (error) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <main className="flex-grow bg-gray-50 py-12">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="bg-white rounded-lg shadow-sm p-8 border border-gray-200">
+              <div className="text-center mb-8">
+                <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-4">
+                  <AlertTriangle className="h-10 w-10 text-red-500" />
+                </div>
+                <h1 className="text-2xl font-bold text-gray-900">Xác nhận thanh toán thất bại</h1>
+                <p className="text-gray-600 mt-1">{error}</p>
+              </div>
+              
+              <div className="border-t border-gray-200 pt-6">
+                <div className="flex flex-col sm:flex-row sm:space-x-4 space-y-3 sm:space-y-0 justify-center">
+                  <Link 
+                    to={courseId ? `/course/${courseId}` : "/courses"}
+                    className="inline-flex justify-center items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
+                  >
+                    Quay lại trang khóa học
+                  </Link>
+                  <Link 
+                    to="/"
+                    className="inline-flex justify-center items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                  >
+                    Về trang chủ
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!order || !order.orderDetails || order.orderDetails.length === 0) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <main className="flex-grow bg-gray-50 py-12">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="bg-white rounded-lg shadow-sm p-8 border border-gray-200">
+              <div className="text-center mb-8">
+                <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-yellow-100 mb-4">
+                  <AlertTriangle className="h-10 w-10 text-yellow-500" />
+                </div>
+                <h1 className="text-2xl font-bold text-gray-900">Không tìm thấy thông tin đơn hàng</h1>
+                <p className="text-gray-600 mt-1">Không thể tải thông tin chi tiết đơn hàng</p>
+              </div>
+              
+              <div className="border-t border-gray-200 pt-6">
+                <div className="flex flex-col sm:flex-row sm:space-x-4 space-y-3 sm:space-y-0 justify-center">
+                  <Link 
+                    to="/my-courses"
+                    className="inline-flex justify-center items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
+                  >
+                    Xem khóa học đã mua
+                  </Link>
+                  <Link 
+                    to="/"
+                    className="inline-flex justify-center items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                  >
+                    Về trang chủ
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Get the first course from order details
+  const courseDetail = order.orderDetails[0];
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -91,19 +229,20 @@ const PaymentSuccess = () => {
             <div className="border-t border-gray-200 pt-6 mb-6">
               <div className="flex flex-col sm:flex-row items-center mb-6">
                 <img 
-                  src={orderDetails.course.image} 
-                  alt={orderDetails.course.title} 
+                  src={courseDetail.course.thumbnailUrl} 
+                  alt={courseDetail.course.title} 
                   className="w-48 h-32 object-cover rounded mb-4 sm:mb-0 sm:mr-6"
                 />
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900 mb-1">{orderDetails.course.title}</h2>
+                  <h2 className="text-xl font-bold text-gray-900 mb-1">{courseDetail.course.title}</h2>
+                  <p className="text-sm text-gray-500 mb-2">Giảng viên: {courseDetail.course.sellerName}</p>
                   <div className="flex items-center text-sm text-gray-500 mb-4">
                     <Calendar className="h-4 w-4 mr-1" />
-                    <span>Ngày mua: {formatDate(orderDetails.date)}</span>
+                    <span>Ngày mua: {formatDate(order.createdAt)}</span>
                   </div>
                   <div className="flex space-x-3">
                     <Link
-                      to={`/learn/${orderDetails.course.id}`}
+                      to={`/learn/${courseDetail.course.id}`}
                       className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
                     >
                       <Play className="mr-1 h-4 w-4" />
@@ -125,19 +264,19 @@ const PaymentSuccess = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                 <div>
                   <p className="text-gray-500 mb-1">Mã đơn hàng:</p>
-                  <p className="font-medium">{orderDetails.orderId}</p>
+                  <p className="font-medium">{order.orderNumber}</p>
                 </div>
                 <div>
                   <p className="text-gray-500 mb-1">Ngày thanh toán:</p>
-                  <p className="font-medium">{formatDate(orderDetails.date)}</p>
+                  <p className="font-medium">{formatDate(order.createdAt)}</p>
                 </div>
                 <div>
                   <p className="text-gray-500 mb-1">Phương thức thanh toán:</p>
-                  <p className="font-medium">Thẻ tín dụng (xxx-xxx-xx789)</p>
+                  <p className="font-medium">{order.paymentMethod === 'BANK_TRANSFER' ? 'Chuyển khoản ngân hàng' : order.paymentMethod}</p>
                 </div>
                 <div>
                   <p className="text-gray-500 mb-1">Tổng tiền:</p>
-                  <p className="font-medium text-lg">{formatPrice(orderDetails.amount)}</p>
+                  <p className="font-medium text-lg">{formatPrice(order.totalAmount)}</p>
                 </div>
               </div>
             </div>

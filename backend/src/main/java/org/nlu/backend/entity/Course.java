@@ -15,6 +15,8 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@ToString(exclude = {"category", "level", "seller", "lessons"})
+@EqualsAndHashCode(exclude = {"category", "level", "seller", "lessons"})
 public class Course extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

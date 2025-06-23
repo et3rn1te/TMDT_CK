@@ -13,6 +13,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@ToString(exclude = {"user", "course", "order"})
+@EqualsAndHashCode(exclude = {"user", "course", "order"})
 public class CourseEnrollment extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

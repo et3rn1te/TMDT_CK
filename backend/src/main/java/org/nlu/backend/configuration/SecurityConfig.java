@@ -30,10 +30,10 @@ public class SecurityConfig {
 
     private static final String[] PUBLIC_POST_ENDPOINTS = {
             "/users", "/auth/login", "/courses/**", "/categories", "/levels",
-            "/auth/forgot-password", "/auth/verify-otp", "/auth/new-password"
+            "/auth/forgot-password", "/auth/verify-otp", "/auth/new-password","/payment/**"
     };
     private static final String[] PUBLIC_GET_ENDPOINTS = {
-            "/users/**", "/courses/**", "/categories", "/levels",
+            "/users/**", "/courses/**", "/categories", "/levels","/payment/**","/orders/**"
     };
     private static final String[] PUBLIC_PUT_ENDPOINTS = {
             "/courses/**",
